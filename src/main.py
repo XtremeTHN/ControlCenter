@@ -1,5 +1,5 @@
 from modules.hyprland.monitors import Monitors
+from modules.config import dump_config
 import sys
 
-mon = Monitors()
-mon.connect("focusedmon", print)
+dump_config()

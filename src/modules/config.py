@@ -1,24 +1,41 @@
 from modules.variable import Variable
 import os
+import json
 
 CONFIG = {
     "Appearance": {
-        "CustomTheme": Variable('Catppuccin-Mocha-Standard-Mauve-Dark'),
-        "IconTheme": Variable('Adwaita'),
-        "CursorTheme": Variable('Bibata-Modern-Classic'),
-        "Wallpaper": Variable('')
+        "CustomTheme": 'Catppuccin-Mocha-Standard-Mauve-Dark',
+        "IconTheme": 'Adwaita',
+        "CursorTheme": 'Bibata-Modern-Classic',
+        "Wallpaper": ''
     },
     "Notifications": {
-        "doNotDisturb": Variable(False),
-        'duration': Variable(5),
+        "doNotDisturb": False,
+        'duration': 5,
         "notificationAppearance": {
-            'blur': Variable(False),
-            'opacity': Variable(0.5),
+            'blur': False,
+            'opacity': 0.5,
         }
     },
     "User": {
-        "name": os.getenv('USER'),
-        "userPhoto": Variable('avatar-default'),
+        "userName": os.getenv('USER'),
+        "userPhoto": 'avatar-default',
+    },
+    "LoginManager": {
+        "theme": '',
+        "autoLogin": {
+            "user": "",
+            "password": "",
+            "session": ""
+        }
+    },
+    "Plymouth": {
+        'emabled': True,
+        'theme': '',
         
     }
 }
+
+def dump_config():
+    with open(f'{os.getenv("HOME")}/.config/ags/centerConfig.json', 'w') as file:
+        json.dump(CONFIG, file, indent=4)
