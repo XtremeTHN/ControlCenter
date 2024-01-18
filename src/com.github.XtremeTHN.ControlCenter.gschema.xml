@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schemalist>
+    <schema id="com.github.XtremeTHN.ControlCenter" path='/com/github/XtremeTHN/HyprRice/ControlCenter/Appearance'>
+        <key name="gtk-theme" type="s">
+            <default>"Catppuccin-Mocha-Standard-Mauve-Dark"</default>
+            <summary>GTK global theme</summary>
+            <description>Set's the GTK global theme</description>
+        </key> 
+        <key name="icon-theme" type="s">
+            <default>"Adwaita"</default>
+            <summary>Icon theme</summary>
+            <description>Set's the icon theme</description>
+        </key>
+        <key name="cursor-theme" type="s">
+            <default>"Bibata-Modern-Classic"</default>
+            <summary>Cursor theme</summary>
+            <description>Set's the curor theme</description>
+        </key>
+        <key name="wallpaper" type="s">
+            <default>""</default>
+            <summary>Wallpaper</summary>
+            <description>Set's the current wallpaper</description>
+        </key>
+    </schema>
+
+    <schema id="com.github.XtremeTHN.ControlCenter" path='/com/github/XtremeTHN/HyprRice/ControlCenter/Notifications'>
+        <key>
+            
+        </key>
+    </schema>
+
+</schemalist>
