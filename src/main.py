@@ -1,7 +1,7 @@
-from modules.hyprland.monitors import Monitors
-from modules.config import dump_config
+from modules.application import ControlCenter
 import sys
 
 APP_ID="com.github.XtremeTHN.ControlCenter"
 
-dump_config()
+if __name__ == "__main__":
+    ControlCenter().run()
