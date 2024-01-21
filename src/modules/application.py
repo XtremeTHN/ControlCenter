@@ -1,7 +1,7 @@
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-
+from modules.tools import VBox, HBox
 from gi.repository import Gtk, Adw, Gio, Gdk
 
 class ControlCenterWindow(Adw.ApplicationWindow):
@@ -10,46 +10,48 @@ class ControlCenterWindow(Adw.ApplicationWindow):
         self.set_default_size(1024, 800)
         self.set_title("Control Center")
         
-        self.sidebar_content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.sidebar_headerbar = Adw.HeaderBar.new()
-        self.sidebar_content.append(self.sidebar_headerbar)
+        self.main = HBox()
 
-        self.sidebar = Adw.NavigationPage.new(self.sidebar_content, title="Control Center")
+        self.sidebar_box = VBox()
+        # self.sidebar_header = Adw.HeaderBar.new()
+        self.sidebar = Gtk.StackSidebar.new()
+        self.sidebar.set_vexpand(True)
+
+        # self.sidebar_box.append(self.sidebar_header)
+        self.sidebar_box.append(self.sidebar)
         
-        self.placeholder = self.create_placeholder()
+        self.stack = Gtk.Stack.new()
+        self.stack.add_named(self.create_placeholder(), 'placeholder')
 
-        self.preferencesActive = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, valign=Gtk.Align.CENTER)
-        self.preferencesActive.append(self.placeholder)
+        self.main.append(self.sidebar_box)
+        self.main.append(self.stack)
 
-        self.preferencePage = Adw.NavigationPage.new(self.preferencesActive, "Preferences")
-
-        self.content = Adw.NavigationSplitView(sidebar=self.sidebar, content=self.preferencePage)
-
-        self.set_content(self.content)
+        self.set_content(self.main)
 
         self.present()
     
     def create_placeholder(self):
-        self._placeholder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        _placeholder = VBox(spacing=0, vexpand=True, hexpand=True)
+        _placeholder.set_valign(Gtk.Align.CENTER)
 
-        self.placeholder_image = Gtk.Image(icon_name="preferences-system-symbolic")
-        self.placeholder_image.set_pixel_size(90)
-        self.placeholder_image.set_opacity(0.7)
+        placeholder_image = Gtk.Image(icon_name="preferences-system-symbolic")
+        placeholder_image.set_pixel_size(90)
+        placeholder_image.set_opacity(0.7)
 
-        self.placeholder_title = Gtk.Label.new("<span weight=\"bold\" size=\"larger\">Welcome to Control Center!</span>")
-        self.placeholder_title.set_use_markup(True)
+        placeholder_title = Gtk.Label.new("<span weight=\"bold\" size=\"larger\">Welcome to Control Center!</span>")
+        placeholder_title.set_use_markup(True)
 
-        self.placeholder_subtitle = Gtk.Label.new("<span size=\"smaller\" weight=\"light\">This control center is made specially for Hyprland and you need to installl my dotfiles to use it!</span>")
+        placeholder_subtitle = Gtk.Label.new("<span size=\"smaller\" weight=\"light\">This control center is made specially for Hyprland and you need to installl my dotfiles to use it!</span>")
 
-        self.placeholder_subtitle.set_use_markup(True)
-        self.placeholder_subtitle.set_wrap(True)
-        self.placeholder_subtitle.set_wrap_mode(Gtk.WrapMode.WORD)
+        placeholder_subtitle.set_use_markup(True)
+        placeholder_subtitle.set_wrap(True)
+        placeholder_subtitle.set_wrap_mode(Gtk.WrapMode.WORD)
 
-        self._placeholder.append(self.placeholder_image)
-        self._placeholder.append(self.placeholder_title)
-        self._placeholder.append(self.placeholder_subtitle)
+        _placeholder.append(placeholder_image)
+        _placeholder.append(placeholder_title)
+        _placeholder.append(placeholder_subtitle)
 
-        return self._placeholder
+        return _placeholder
     
     def toggle_placeholder(self, toggled=None):
         self._placeholder.set_visible(not self.get_visible() if toggled is None else toggled)
