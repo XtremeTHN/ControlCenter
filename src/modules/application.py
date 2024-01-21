@@ -2,7 +2,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
-from gi.repository import Gtk, Adw, Gio
+from gi.repository import Gtk, Adw, Gio, Gdk
 
 class ControlCenterWindow(Adw.ApplicationWindow):
     def __init__(self, app):
@@ -54,17 +54,46 @@ class ControlCenterWindow(Adw.ApplicationWindow):
     def toggle_placeholder(self, toggled=None):
         self._placeholder.set_visible(not self.get_visible() if toggled is None else toggled)
 
+class TestWindow(Adw.ApplicationWindow):
+    def __init__(self, app):
+        super().__init__(application=app)
+
+        self.set_default_size(800, 600)
+        self.set_size_request(800, 600)
+
+        self.main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self.header = Adw.HeaderBar.new()
+        self.header.set_title_widget(Gtk.Label(label=""))
+
+        self.main_box.append(self.header)
+
+        self.set_content(self.main_box)
+
+        self.present()
+
 class ControlCenter(Adw.Application):
     def __init__(self):
         super().__init__(
-            application_id="com.github.XtremeTHN.ControlCenter",
+            application_id="com.github.XtremeTHN.ControlCenter1",
             flags=Gio.ApplicationFlags.FLAGS_NONE
         )
     
     def do_activate(self) -> None:
+        Adw.StyleManager(color_scheme=Adw.ColorScheme.PREFER_DARK, display=Gdk.Display.get_default())
+
+        provider = Gtk.CssProvider.new()
+        provider.load_from_path('src/styles/style.css')
+
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(),
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
+
         self.win = self.props.active_window
         if not self.win:
             self.win = ControlCenterWindow(self)
+            # self.win = TestWindow(self)
         
         self.create_action('quit', self.exit_app, ['<primary>q'])
     
