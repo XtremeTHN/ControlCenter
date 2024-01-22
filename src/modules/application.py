@@ -4,6 +4,43 @@ gi.require_version("Adw", "1")
 from modules.tools import VBox, HBox
 from gi.repository import Gtk, Adw, Gio, Gdk
 
+class ControlCenterSideBar(HBox):
+    def __init__(self, transition_type):
+        self.sidebar = VBox(spacing=2)
+        self.sidebar.set_size_request(200, -1)
+        self.stack = Gtk.Stack(transition_duration=500, transition_type=transition_type)
+        super().__init__()
+
+        self.sidebar.add_css_class('sidebar')
+
+        self.header = Adw.HeaderBar.new()
+        self.header.set_title_widget(Gtk.Label(label="Control Center"))
+        self.header.set_show_end_title_buttons(False)
+        self.header.pack_end(Gtk.Button.new_from_icon_name("open-menu-symbolic"))
+
+        self.sidebar.append(self.header)
+        self.appends(self.sidebar, self.stack)
+    
+    def append_to_stack(self, widget: Gtk.Widget, name: str):
+        self.stack.add_named(widget, name)
+
+    def append_button_to_sidebar(self, icon, label, target):
+        btt = Gtk.Button.new()
+
+        btt.add_css_class('sidebar-button')
+
+        btt_content = HBox()
+        btt_content_image = Gtk.Image.new_from_icon_name(icon)
+        btt_content_label = Gtk.Label.new(label)
+
+        btt_content.appends(btt_content_image, btt_content_label)
+
+        btt.set_child(btt_content)
+
+        btt.connect('clicked', lambda _: self.stack.set_visible_child_name(target))
+
+        self.sidebar.append(btt)
+
 class ControlCenterWindow(Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app)
@@ -12,19 +49,13 @@ class ControlCenterWindow(Adw.ApplicationWindow):
         
         self.main = HBox()
 
-        self.sidebar_box = VBox()
-        # self.sidebar_header = Adw.HeaderBar.new()
-        self.sidebar = Gtk.StackSidebar.new()
-        self.sidebar.set_vexpand(True)
+        self.sidebar = ControlCenterSideBar(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
 
-        # self.sidebar_box.append(self.sidebar_header)
-        self.sidebar_box.append(self.sidebar)
-        
-        self.stack = Gtk.Stack.new()
-        self.stack.add_named(self.create_placeholder(), 'placeholder')
+        self.sidebar.append_to_stack(self.create_placeholder(), "placeholder")
+        self.sidebar.append_to_stack(Gtk.Label.new("Search"), "search")
+        self.sidebar.append_button_to_sidebar("system-search-symbolic", "Search", "search")
 
-        self.main.append(self.sidebar_box)
-        self.main.append(self.stack)
+        self.main.append(self.sidebar)
 
         self.set_content(self.main)
 
@@ -41,37 +72,20 @@ class ControlCenterWindow(Adw.ApplicationWindow):
         placeholder_title = Gtk.Label.new("<span weight=\"bold\" size=\"larger\">Welcome to Control Center!</span>")
         placeholder_title.set_use_markup(True)
 
-        placeholder_subtitle = Gtk.Label.new("<span size=\"smaller\" weight=\"light\">This control center is made specially for Hyprland and you need to installl my dotfiles to use it!</span>")
+        # placeholder_subtitle = Gtk.Label.new("<span size=\"smaller\" weight=\"light\">This control center is made specially for Hyprland and you need to installl my dotfiles to use it!</span>")
 
-        placeholder_subtitle.set_use_markup(True)
-        placeholder_subtitle.set_wrap(True)
-        placeholder_subtitle.set_wrap_mode(Gtk.WrapMode.WORD)
+        # placeholder_subtitle.set_use_markup(True)
+        # placeholder_subtitle.set_wrap(True)
+        # placeholder_subtitle.set_wrap_mode(Gtk.WrapMode.WORD)
 
         _placeholder.append(placeholder_image)
         _placeholder.append(placeholder_title)
-        _placeholder.append(placeholder_subtitle)
+        # _placeholder.append(placeholder_subtitle)
 
         return _placeholder
     
     def toggle_placeholder(self, toggled=None):
         self._placeholder.set_visible(not self.get_visible() if toggled is None else toggled)
-
-class TestWindow(Adw.ApplicationWindow):
-    def __init__(self, app):
-        super().__init__(application=app)
-
-        self.set_default_size(800, 600)
-        self.set_size_request(800, 600)
-
-        self.main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        self.header = Adw.HeaderBar.new()
-        self.header.set_title_widget(Gtk.Label(label=""))
-
-        self.main_box.append(self.header)
-
-        self.set_content(self.main_box)
-
-        self.present()
 
 class ControlCenter(Adw.Application):
     def __init__(self):

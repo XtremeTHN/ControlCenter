@@ -22,8 +22,20 @@ def include_bytes(file: str) -> bytes:
     gfile = Gio.File.new_for_path(file)
     return gfile.load_contents(None)[1]
 
-def HBox(spacing=10, **extra) -> Gtk.Box:
-    return Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=spacing, **extra)
 
-def VBox(spacing=10, **extra) -> Gtk.Box:
-    return Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=spacing, **extra)
+class HBox(Gtk.Box):
+    def __init__(self, spacing=10, **extra):
+        super().__init__(orientation=Gtk.Orientation.HORIZONTAL, spacing=spacing, **extra)
+    
+    def appends(self, *widgets):
+        for widget in widgets:
+            self.append(widget)
+
+class VBox(Gtk.Box):
+    def __init__(self, spacing=10, **extra):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=spacing, **extra)
+    
+    def appends(self, *widgets):
+        for widget in widgets:
+            self.append(widget)
+

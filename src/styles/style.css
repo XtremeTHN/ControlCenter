@@ -1,5 +1,15 @@
-.label {
-  color: black;
+.sidebar {
+  border-right: 1px solid gray;
+}
+
+.sidebar-button {
+  border-radius: 0;
+  border: none;
+  background-color: transparent;
+}
+
+.sidebar-button:focus {
+  border: none;
 }
 
 /*# sourceMappingURL=style.css.map */
