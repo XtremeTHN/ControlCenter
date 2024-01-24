@@ -2,8 +2,9 @@
 
 <gresources>
     <gresource prefix="/com/github/XtremeTHN/ControlCenter/">
-        <file alias="dark-color-scheme.png">src/res/uncompiled/dark-color-scheme.png</file>
+        <!-- <file alias="dark-color-scheme.png">src/res/uncompiled/dark-color-scheme.png</file> -->
+        <file>src/res/uncompiled/dark-color-scheme.png</file>
         <file alias="light-color-scheme.png">src/res/uncompiled/light-color-scheme.png</file>
-        <file alias="style.css">src/styles/style.css</file>
+        <file alias="styles.css">src/styles/style.css</file>
     </gresource>
 </gresources>
