@@ -1,46 +1,41 @@
 from modules.config import AppearanceConfig
-from modules.tools import set_margins, VBox, HBox
+from modules.tools import GtkThemes, VBox, HBox, set_margins
 
-from gi.repository import Gtk, GdkPixbuf, Adw, Gio
-
-def ColorScheme(color_scheme_name: str, subtitle: str, img_name: str, callback):
-    border_box = Gtk.ToggleButton.new()
-    # border_box.add_css_class('colorscheme-button-border')
-
-    box = VBox(spacing=0)
-    
-    img = Gtk.Image.new_from_resource(f'/com/github/XtremeTHN/ControlCenter/src/res/uncompiled/{img_name}.png')
-    img.set_pixel_size(168)
-    img.add_css_class('colorscheme-img')
-    box_foot_text = Gtk.Label.new(subtitle)
-    
-    box.appends(img, box_foot_text)
-    border_box.set_child(box)
-
-    border_box.connect('toggled', callback, color_scheme_name)
-
-    return border_box
+from gi.repository import Gtk, GObject, Adw, Gio
 
 
 class AppearancePage(VBox):
     def __init__(self):
         # AppearanceConfig.__init__(self)
         super().__init__(spacing=10)
+
+        self.gtk_themes = GtkThemes()
         
-        color_schemes_group = Adw.PreferencesGroup()
-        color_schemes_group.set_title("Style")
-        color_schemes_group.set_description("Choose a color scheme")
+        reload_button = Gtk.Button.new_from_icon_name("view-refresh-symbolic")
+        reload_button.set_halign(Gtk.Align.CENTER)
 
-        cs_buttons = HBox(homogeneous=True)
+        reload_button.connect('clicked', self.reload_themes_model)
+
+        style_group = Adw.PreferencesGroup(title="Style", description="Customize the appearance of Gtk and some other stuff")
+        style_group.set_header_suffix(reload_button)
+        style_group_listbox_actions = Gtk.ListBox.new()
+        style_group_listbox_actions.set_selection_mode(Gtk.SelectionMode.NONE)
+        style_group_listbox_actions.get_style_context().add_class('boxed-list')
+
+
+        self.gtk_theme = Adw.ComboRow(title="GTK theme", subtitle="Global gtk theme (from ~/.themes)")
+        self.gtk_theme.set_model(self.gtk_themes._themes)
+
+        self.gtk_theme.connect('notify::selected', self.change_theme)
+        style_group_listbox_actions.append(self.gtk_theme)
+
+        style_group.add(style_group_listbox_actions)
+
+        self.append(style_group)
+
+    def reload_themes_model(self, _):
+        self.gtk_theme.set_model(self.gtk_themes.get_themes_list())
         
-        light = ColorScheme("light", "Light", "light-color-scheme", self.color_callback)
-        dark = ColorScheme("dark", "Dark", "dark-color-scheme", self.color_callback)
-
-        cs_buttons.appends(light, dark)
-
-        color_schemes_group.add(cs_buttons)
-        self.append(color_schemes_group)
-
-    def color_callback(self, widget, color_scheme_name):
-        if widget.get_active():
-            print("Yes", color_scheme_name)
+    def change_theme(self, combo_row: Adw.ComboRow, _):
+        theme: Gtk.StringObject = self.gtk_themes._themes.get_item(combo_row.get_selected())
+        self.gtk_themes.set_theme(theme.get_string())

@@ -93,26 +93,10 @@ class UserConfig(BaseConfiguration):
 
 class GtkConfig(BaseConfiguration):
     def __init__(self):
-        super().__init__('org.gnome.desktop.interface')
-        gtk_config_path = os.path.expanduser("~/.config/gtk-4.0")
-        gtk_config_file_path = os.path.join(gtk_config_path, "settings.ini")
-
-        if not os.path.exists(gtk_config_path):
-            os.system(f'mkdir -p {gtk_config_path}')
-
-        if not os.path.exists(gtk_config_file_path):
-            os.system(f'touch {gtk_config_file_path}')
-        
-        self.config_file = toml.load(open(gtk_config_file_path))
+        super().__init__('org.gnome.desktop.interface')    
 
     def set_theme(self, theme):
         self.set_string('gtk-theme', theme)
-
-    def set_dark_scheme(self, enabled):
-        self.config_file['gtk-application-prefer-dark-theme'] = enabled
-
-    def set_light_scheme(self, enabled):
-        self.config_file['gtk-application-prefer-light-theme'] = enabled
 
     def bindTheme(self, widget, prop):
         self.bind_config("theme", widget, prop)

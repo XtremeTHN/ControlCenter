@@ -2,7 +2,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from modules.tools import VBox, HBox, set_margins
-from modules.appearance import AppearancePage, ColorScheme
+from modules.appearance import AppearancePage
 from gi.repository import Gtk, Adw, Gio, Gdk
 
 class ControlCenterSideBar(HBox):
