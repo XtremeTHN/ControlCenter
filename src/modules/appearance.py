@@ -1,5 +1,7 @@
+import logging
+
 from modules.config import AppearanceConfig
-from modules.tools import GtkThemes, VBox, HBox, set_margins
+from modules.tools import GtkThemes, GtkIconTheme, VBox, HBox, set_margins
 
 from gi.repository import Gtk, GObject, Adw, Gio
 
@@ -8,6 +10,7 @@ class AppearancePage(VBox):
     def __init__(self):
         # AppearanceConfig.__init__(self)
         super().__init__(spacing=10)
+        self.logger = logging.getLogger('AppearancePage')
 
         self.gtk_themes = GtkThemes()
         
@@ -16,11 +19,7 @@ class AppearancePage(VBox):
 
         reload_button.connect('clicked', self.reload_themes_model)
 
-        style_group = Adw.PreferencesGroup(title="Style of widgets", description="Customize the appearance of Gtk widgets")
-        style_group.set_header_suffix(reload_button)
-        style_group_listbox_actions = Gtk.ListBox.new()
-        style_group_listbox_actions.set_selection_mode(Gtk.SelectionMode.NONE)
-        style_group_listbox_actions.get_style_context().add_class('boxed-list')
+        style_group_listbox_actions = self.create_new_group("Style of widgets", "Customize the appearance of Gtk widgets", suffix=reload_button)
 
         # Gtk Theme
         self.gtk_theme = Adw.ComboRow(title="GTK theme", subtitle="Global gtk theme (from ~/.themes)")
@@ -33,12 +32,9 @@ class AppearancePage(VBox):
 
         # Color scheme
         gtk_color_scheme = Adw.ComboRow(title="GTK color scheme", subtitle="Global gtk color scheme")
-        gtk_color_schemes = Gtk.StringList.new(['default', 'prefer-light', 'prefer-dark'])
-        gtk_color_scheme.set_model(gtk_color_schemes)
+        gtk_color_scheme.set_model(Gtk.StringList.new(['default', 'prefer-light', 'prefer-dark']))
         
-        for x in range(0, gtk_color_schemes.get_n_items()):
-            if gtk_color_schemes.get_item(x).get_string() == self.gtk_themes.get_string('color-scheme'):
-                gtk_color_scheme.set_selected(x)
+        self.set_default_selected_on_combo_row(gtk_color_scheme, self.gtk_themes.get_string('color-scheme'))
         
         gtk_color_scheme.connect('notify::selected', self.on_color_scheme_changed)
 
@@ -61,13 +57,22 @@ class AppearancePage(VBox):
         # End Font
         
         # Icons
-        self.icon_theme_group = Adw.PreferencesGroup(title="Icons", description="Customize the icons")
+        icon_theme_listbox_actions = self.create_new_group("Icon theme", "Set and visualize the icon theme!")
+        
+        self.icon_themes = GtkIconTheme()
 
-        style_group.add(style_group_listbox_actions)
-        self.append(style_group)
+        icon_themes_combo = Adw.ComboRow(model=self.icon_themes.get_icons(), title="Global icon theme", subtitle="Set the global icon theme by choosing it from the combobox")
+        icon_themes_combo.connect('notify::selected', self.on_icon_theme_changed)
+
+        self.set_default_selected_on_combo_row(icon_themes_combo, self.icon_themes.get_current_icon_theme())
+
+        icon_theme_listbox_actions.append(icon_themes_combo)
     
+    def on_icon_theme_changed(self, combo_row: Adw.ComboRow, *argv):
+        self.icon_themes.set_icon_theme(str(combo_row.get_selected_item().get_string()))
+            
     def on_color_scheme_changed(self, combo_row: Adw.ComboRow, *argv):
-        self.gtk_themes.set_current_color_scheme(str(combo_row.get_model().get_item(combo_row.get_selected()).get_string()))
+        self.gtk_themes.set_current_color_scheme(combo_row.get_selected_item().get_string())
     
     def on_default_font_changed(self, entry, *argv):
         self.gtk_themes.set_font_name(entry.get_text())
@@ -81,3 +86,26 @@ class AppearancePage(VBox):
     def change_theme(self, combo_row: Adw.ComboRow, _):
         theme: Gtk.StringObject = self.gtk_themes._themes.get_item(combo_row.get_selected())
         self.gtk_themes.set_theme(theme.get_string())
+
+    def create_new_group(self, title, description, suffix=None):
+        group = Adw.PreferencesGroup(title=title, description=description)
+        if suffix is not None:
+            if isinstance(suffix, Gtk.Widget):
+                group.set_header_suffix(suffix=suffix)
+            else:
+                self.logger.warning("The provided suffix widget is not an instance of Gtk.Widget, fix it pls, or remove this verification")
+                self.logger.warning("Ignoring suffix...")
+
+        listbox_actions = Gtk.ListBox.new()
+        listbox_actions.set_selection_mode(Gtk.SelectionMode.NONE)
+        listbox_actions.get_style_context().add_class('boxed-list')
+        
+        group.add(listbox_actions)
+        self.append(group)
+        return listbox_actions
+    
+    def set_default_selected_on_combo_row(self, comborow: Adw.ComboRow, condition):
+        model = comborow.get_model()
+        for x in range(0, model.get_n_items()):
+            if model.get_item(x).get_string() == condition:
+                comborow.set_selected(x)

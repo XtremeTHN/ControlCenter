@@ -30,6 +30,7 @@ def include_bytes(file: str) -> bytes:
 class ThemeParser:
     def __init__(self, file) -> None:
         self.file = file
+        self.logger = logging.getLogger('ThemeParser')
     
     def _parse_section(self, section_pos, file_content):
         # key = value
@@ -47,6 +48,8 @@ class ThemeParser:
         return values
 
     def parse(self) -> dict:
+        self.logger.debug('Parsing theme file: %s', self.file)
+
         with open(self.file) as file:
             contents = file.read().splitlines()
             conf = {}
@@ -118,8 +121,10 @@ class GtkThemes(GtkConfig, GObject.GObject):
 class GtkIconTheme(GtkConfig):
     def __init__(self):
         GtkConfig.__init__(self)
+        self.logger = logging.getLogger('GtkIconTheme')
 
     def _parse_icon_theme(self, file):
+        
         icon_theme = ThemeParser(file).parse()
         if (n:=icon_theme.get('Icon Theme')) is not None:
             if n.get('Name') is not None:
@@ -135,3 +140,11 @@ class GtkIconTheme(GtkConfig):
         for x in glob(icon_paths[0] + "/**/index.theme", recursive=True):
             if (n:= self._parse_icon_theme(x)) is not None:
                 icon_list.append(n)
+        
+        return icon_list
+
+    def get_current_icon_theme(self):
+        return self.get_string('icon-theme')
+
+    def set_icon_theme(self, icon_theme_name):
+        self.set_string('icon-theme', icon_theme_name)

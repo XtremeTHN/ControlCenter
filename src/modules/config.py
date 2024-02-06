@@ -1,6 +1,5 @@
 from gi.repository import Gio
 import os
-import toml
 
 class BaseConfiguration(Gio.Settings):
     def __init__(self, schema):
