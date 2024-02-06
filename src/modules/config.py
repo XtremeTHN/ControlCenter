@@ -93,10 +93,22 @@ class UserConfig(BaseConfiguration):
 
 class GtkConfig(BaseConfiguration):
     def __init__(self):
-        super().__init__('org.gnome.desktop.interface')    
+        super().__init__('org.gnome.desktop.interface')
+        self.font_value = self.get_string('font-name').split(' ')
 
     def set_theme(self, theme):
         self.set_string('gtk-theme', theme)
+    
+    def _set_font(self):
+        self.set_string('font-name', " ".join(self.font_value))
+
+    def set_font_name(self, name: str):
+        self.font_value[0] = name.strip()
+        self._set_font()
+    
+    def set_font_size(self, size: int):
+        self.font_value[1] = str(size)
+        self._set_font()
 
     def bindTheme(self, widget, prop):
         self.bind_config("theme", widget, prop)
