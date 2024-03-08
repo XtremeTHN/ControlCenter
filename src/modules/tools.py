@@ -6,6 +6,9 @@ import os
 import logging
 
 def set_margins(widget: Gtk.Widget, margins: list[int]):
+    """
+        Reminder: margins = [top, right, bottom, left]
+    """
     length = len(margins)
     
     top = margins[0]
@@ -92,11 +95,11 @@ class GtkThemes(GtkConfig, GObject.GObject):
 
     def _parse_theme(self, theme_path: str):
         theme = ThemeParser(theme_path).parse()
-        if (n:=theme.get('X-GNOME-Metatheme')) is not None:
-            if n.get('GtkTheme') is not None:
-                return n['GtkTheme']
+        if (n:=theme.get('Desktop Entry')) is not None:
+            if n.get('Type') == "X-GNOME-Metatheme":
+                return os.path.basename(os.path.split(theme_path)[0])
             else:
-                self.logger.error(f'Could not find gtk theme name in {theme_path}')
+                self.logger.error(f'Could not find Desktop Entry Type in {theme_path}')
         else:
             self.logger.error(f'Could not find [X-GNOME-Metatheme] in {theme_path}')
             return
@@ -118,6 +121,18 @@ class GtkThemes(GtkConfig, GObject.GObject):
     def set_current_color_scheme(self, color_scheme):
         self.set_string('color-scheme', color_scheme)
 
+class ScrolledBox(Gtk.ScrolledWindow):
+    def __init__(self, **box_args):
+        self.box = Gtk.Box(spacing=10, orientation=Gtk.Orientation.VERTICAL, **box_args)
+        super().__init__(child=self.box)
+    
+    def apppends(self, *widgets):
+        for widget in widgets:
+            self.box.append(widget)
+
+    def append(self, widget):
+        self.box.append(widget)
+
 class GtkIconTheme(GtkConfig):
     def __init__(self):
         GtkConfig.__init__(self)
@@ -138,6 +153,8 @@ class GtkIconTheme(GtkConfig):
         icon_list = Gtk.StringList.new([])
 
         for x in glob(icon_paths[0] + "/**/index.theme", recursive=True):
+            if os.path.exists(os.path.join(os.path.split(x)[0], 'cursor.theme')):
+                continue
             if (n:= self._parse_icon_theme(x)) is not None:
                 icon_list.append(n)
         
@@ -148,3 +165,34 @@ class GtkIconTheme(GtkConfig):
 
     def set_icon_theme(self, icon_theme_name):
         self.set_string('icon-theme', icon_theme_name)
+
+class GtkCursorTheme(GtkConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.logger = logging.getLogger('GtkCursorTheme')
+
+    def get_cursors(self):
+        cursor_paths = ['/usr/share/icons', os.path.expanduser('~/.icons')]
+        cursor_list = Gtk.StringList.new([])
+
+        for x in glob(cursor_paths[0] + "/**/cursor.theme", recursive=True):
+            if (n:= self._parse_cursor_theme(x)) is not None:
+                cursor_list.append(n)
+        
+        return cursor_list
+
+    def _parse_cursor_theme(self, file):
+        cursor_theme = ThemeParser(file).parse()
+        if (n:=cursor_theme.get('Icon Theme')) is not None:
+            if n.get('Name') is not None:
+                return n['Name']
+        else:
+            self.logger.error(f'Could not find cursor theme name in {file}.')
+            return
+    
+    def set_default_cursor_theme(self, cursor_theme: str):
+        self.set_string('cursor-theme', cursor_theme)
+    
+    def get_default_cursor_theme(self):
+        return self.get_string('cursor-theme')

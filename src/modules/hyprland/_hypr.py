@@ -109,4 +109,4 @@ class BaseHyprlandEventsClass(GObject.GObject):
 
     def close(self):
         self.sock_hypr_events.close()
-        self.loop_thread.unref()
+#        self.loop_thread.unref()

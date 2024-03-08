@@ -1,15 +1,32 @@
 import logging
 
 from modules.config import AppearanceConfig
-from modules.tools import GtkThemes, GtkIconTheme, VBox, HBox, set_margins
+from modules.tools import GtkThemes, GtkIconTheme, GtkCursorTheme, ScrolledBox, HBox, set_margins
 
-from gi.repository import Gtk, GObject, Adw, Gio
+from gi.repository import Gtk, GObject, Adw, Gio, GdkPixbuf
 
 
-class AppearancePage(VBox):
+class AppearancePage(ScrolledBox):
+    ICON_VIEW_ICONS=[
+        "user-home",
+		"user-desktop",
+		"folder",
+		"folder-remote",
+		"user-trash",
+		"x-office-document",
+		"application-x-executable",
+		"image-x-generic",
+		"package-x-generic",
+		"emblem-mail",
+		"utilities-terminal",
+		"chromium",
+		"firefox",
+		"gimp"
+    ]
     def __init__(self):
         # AppearanceConfig.__init__(self)
-        super().__init__(spacing=10)
+        super().__init__()
+
         self.logger = logging.getLogger('AppearancePage')
 
         self.gtk_themes = GtkThemes()
@@ -63,10 +80,37 @@ class AppearancePage(VBox):
 
         icon_themes_combo = Adw.ComboRow(model=self.icon_themes.get_icons(), title="Global icon theme", subtitle="Set the global icon theme by choosing it from the combobox")
         icon_themes_combo.connect('notify::selected', self.on_icon_theme_changed)
-
+        
+        icon_theme_listbox_actions.append(icon_themes_combo)
         self.set_default_selected_on_combo_row(icon_themes_combo, self.icon_themes.get_current_icon_theme())
 
-        icon_theme_listbox_actions.append(icon_themes_combo)
+        # End Icons
+
+        # Preview Icon
+        icons_preview_row = Adw.ActionRow(subtitle="Preview icons in the current theme")
+        icons_flow_box = Gtk.FlowBox.new()
+
+        for x in self.ICON_VIEW_ICONS:
+            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon.new(x))
+            icon.set_icon_size(Gtk.IconSize.LARGE)
+            icons_flow_box.append(icon)
+
+        icons_preview_row.set_child(icons_flow_box)
+
+        icon_theme_listbox_actions.append(icons_preview_row)
+        # End Preview Icon
+
+        # Cursor
+        self.cursors = GtkCursorTheme()
+
+        cursor_theme_listbox_actions = self.create_new_group("Cursor theme", "Set and visualize the cursor theme!")
+
+        cursor_theme_combo = Adw.ComboRow(model=self.cursors.get_cursors(), title="Global cursor theme", subtitle="Set the global cursor theme by choosing it from the combobox")
+        cursor_theme_combo.connect('notify::selected', self.on_cursor_theme_changed)
+
+        self.set_default_selected_on_combo_row(cursor_theme_combo, self.cursors.get_default_cursor_theme())
+
+        cursor_theme_listbox_actions.append(cursor_theme_combo)
     
     def on_icon_theme_changed(self, combo_row: Adw.ComboRow, *argv):
         self.icon_themes.set_icon_theme(str(combo_row.get_selected_item().get_string()))
@@ -79,6 +123,9 @@ class AppearancePage(VBox):
     
     def on_default_font_size_changed(self, spin, *argv):
         self.gtk_themes.set_font_size(int(spin.get_value()))
+    
+    def on_cursor_theme_changed(self, combo_row: Adw.ComboRow, *argv):
+        self.cursors.set_default_cursor_theme(combo_row.get_selected_item().get_string())
 
     def reload_themes_model(self, _):
         self.gtk_theme.set_model(self.gtk_themes.get_themes_list())
