@@ -3,14 +3,17 @@ import logging
 import socket
 import os
 
+import subprocess
+
 from gi.repository import GObject, GLib
 
-class BaseHyprlandClass:
+class HyprctlClass:
     def __init__(self):
         """
         Initialize the object.
 
-        This function creates a socket connection to the Unix domain socket at the specified path. The socket uses the AF_UNIX address family and the SOCK_STREAM socket type. The path to the socket file is constructed using the environment variable HYPRLAND_INSTANCE_SIGNATURE.
+        This function executes hyprctl commands.         
+        Connects to the Hyprctl socket
 
         Parameters:
             self (object): The object itself.
@@ -18,13 +21,10 @@ class BaseHyprlandClass:
         Returns:
             None
         """
-        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.sock.connect(f'/tmp/hypr/{os.getenv("HYPRLAND_INSTANCE_SIGNATURE")}/.socket.sock')
 
-    def send(self, cmd, *args):
+    def exec(self, cmd, *args):
         """
-        Send a command to the hyprland ipc.
-
+        Executes a command with hyprctl.
         Args:
             cmd (str): The command to send.
             *args: Additional arguments to include with the command.
@@ -32,22 +32,7 @@ class BaseHyprlandClass:
         Returns:
             None
         """
-        self.sock.send(f'{cmd} {" ".join(args)}'.encode())
-        return self.sock.recv(4096).decode()
-    
-    def close(self):
-        """
-        Close the socket connection.
-
-        This function closes the socket connection by calling the `close()` method on the `sock` object.
-
-        Parameters:
-            None
-
-        Returns:
-            None
-        """
-        self.sock.close()
+        return subprocess.check_output(args=["hyprctl", cmd, *args])
 
 class BaseHyprlandEventsClass(GObject.GObject):
     __gsignals__ = {

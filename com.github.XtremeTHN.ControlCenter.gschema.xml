@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <schemalist>
-    <schema id="com.github.XtremeTHN.ControlCenter" path='/com/github/XtremeTHN/HyprRice/ControlCenter/'>
-    
+    <schema id="com.github.XtremeTHN.ControlCenter"
+        path='/com/github/XtremeTHN/HyprRice/ControlCenter/'>
+
     </schema>
-    <schema id="com.github.XtremeTHN.ControlCenter.Appearance" path='/com/github/XtremeTHN/HyprRice/ControlCenter/Appearance/'>
+    <schema id="com.github.XtremeTHN.ControlCenter.Appearance"
+        path='/com/github/XtremeTHN/HyprRice/ControlCenter/Appearance/'>
         <key name="gtk-theme" type="s">
             <default>"Catppuccin-Mocha-Standard-Mauve-Dark"</default>
             <summary>GTK global theme</summary>
             <description>Set's the GTK global theme</description>
-        </key> 
+        </key>
         <key name="icon-theme" type="s">
             <default>"Adwaita"</default>
             <summary>Icon theme</summary>
@@ -18,7 +20,12 @@
         <key name="cursor-theme" type="s">
             <default>"Bibata-Modern-Classic"</default>
             <summary>Cursor theme</summary>
-            <description>Set's the curor theme</description>
+            <description>Set's the cursor theme</description>
+        </key>
+        <key name="cursor-size" type="i">
+            <default>24</default>
+            <summary>Cursor Size</summary>
+            <description>Sets the cursor size</description>
         </key>
         <key name="wallpaper" type="s">
             <default>""</default>
@@ -27,21 +34,23 @@
         </key>
     </schema>
 
-    <schema id="com.github.XtremeTHN.ControlCenter.Notifications" path='/com/github/XtremeTHN/HyprRice/ControlCenter/Notifications/'>
+    <schema id="com.github.XtremeTHN.ControlCenter.Notifications"
+        path='/com/github/XtremeTHN/HyprRice/ControlCenter/Notifications/'>
         <key name="dnd" type="b">
             <default>false</default>
             <summary>Do not disturb</summary>
             <description>Set's if notification will show up</description>
         </key>
         <key name="duration" type="i">
-            <range min='1' max='20'/>
+            <range min='1' max='20' />
             <default>10</default>
             <summary>Notification duration</summary>
             <description>Set's when the notification needs to be closed</description>
         </key>
     </schema>
 
-    <schema id="com.github.XtremeTHN.ControlCenter.Notifications.Appearance" path='/com/github/XtremeTHN/HyprRice/ControlCenter/Notifications/Appearance/'>
+    <schema id="com.github.XtremeTHN.ControlCenter.Notifications.Appearance"
+        path='/com/github/XtremeTHN/HyprRice/ControlCenter/Notifications/Appearance/'>
         <key name="blur" type="b">
             <default>true</default>
             <summary>Notification blur</summary>
@@ -54,11 +63,13 @@
         </key>
     </schema>
 
-    <schema id="com.github.XtremeTHN.ControlCenter.User" path='/com/github/XtremeTHN/HyprRice/ControlCenter/User/'>
+    <schema id="com.github.XtremeTHN.ControlCenter.User"
+        path='/com/github/XtremeTHN/HyprRice/ControlCenter/User/'>
         <key name="user-name" type="s">
             <default>""</default>
             <summary>User name</summary>
-            <description>User name, if it's empty, code will guess the user with the USER environment variable.</description>
+            <description>User name, if it's empty, code will guess the user with the USER
+                environment variable.</description>
         </key>
         <key name="user-photo" type="s">
             <default>"avatar-default"</default>
@@ -67,7 +78,8 @@
         </key>
     </schema>
 
-    <schema id="com.github.XtremeTHN.ControlCenter.LoginManager" path='/com/github/XtremeTHN/HyprRice/ControlCenter/LoginManager/'>
+    <schema id="com.github.XtremeTHN.ControlCenter.LoginManager"
+        path='/com/github/XtremeTHN/HyprRice/ControlCenter/LoginManager/'>
         <key name="theme" type='s'>
             <default>""</default>
             <summary>LightDM theme</summary>
@@ -75,7 +87,8 @@
         </key>
     </schema>
 
-    <schema id="com.github.XtremeTHN.ControlCenter.LoginManager.AutoLogin" path='/com/github/XtremeTHN/HyprRice/ControlCenter/LoginManager/AutoLogin/'>
+    <schema id="com.github.XtremeTHN.ControlCenter.LoginManager.AutoLogin"
+        path='/com/github/XtremeTHN/HyprRice/ControlCenter/LoginManager/AutoLogin/'>
         <key name="enabled" type='b'>
             <default>false</default>
             <summary>Autologin enable</summary>
@@ -85,23 +98,27 @@
         <key name="user" type="s">
             <default>""</default>
             <summary>AutoLogin username</summary>
-            <description>The user that lightdm autologin needs to login. No effect if autologin is disabled</description>
+            <description>The user that lightdm autologin needs to login. No effect if autologin is
+                disabled</description>
         </key>
 
         <key name="password" type="s">
             <default>""</default>
             <summary>AutoLogin password</summary>
-            <description>The password of the user that lightdm autologin needs to login. No effect if autologin is disabled</description>
+            <description>The password of the user that lightdm autologin needs to login. No effect
+                if autologin is disabled</description>
         </key>
 
         <key name="session" type="s">
             <default>""</default>
             <summary>AutoLogin session</summary>
-            <description>The session that lightdm autologin needs to open after login. No effect if autologin is disabled</description>
+            <description>The session that lightdm autologin needs to open after login. No effect if
+                autologin is disabled</description>
         </key>
     </schema>
 
-    <schema id="com.github.XtremeTHN.ControlCenter.Plymouth" path='/com/github/XtremeTHN/HyprRice/ControlCenter/Plymouth/'>
+    <schema id="com.github.XtremeTHN.ControlCenter.Plymouth"
+        path='/com/github/XtremeTHN/HyprRice/ControlCenter/Plymouth/'>
         <key name="enabled" type="b">
             <default>true</default>
             <summary>Plymouth state</summary>
@@ -110,7 +127,8 @@
         <key name="theme" type="s">
             <default>""</default>
             <summary>Plymouth theme</summary>
-            <description>Set's the curent plymouth theme. You can get a list of plymouth themes by executing 'plymouth-set-default-theme -l' </description>
+            <description>Set's the curent plymouth theme. You can get a list of plymouth themes by
+                executing 'plymouth-set-default-theme -l' </description>
         </key>
     </schema>
 </schemalist>

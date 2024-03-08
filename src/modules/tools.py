@@ -1,5 +1,5 @@
 from gi.repository import Gtk, Gio, GObject
-from modules.config import GtkConfig
+from modules.config import GtkConfig, AppearanceConfig
 from glob import glob
 
 import os
@@ -142,26 +142,38 @@ class GtkIconTheme(GtkConfig):
         
         icon_theme = ThemeParser(file).parse()
         if (n:=icon_theme.get('Icon Theme')) is not None:
-            if n.get('Name') is not None:
-                return n['Name']
+            if n.get('Directories') is not None:
+                if n.get('Name') is not None:
+                    return n['Name']
+                else: 
+                    self.logger.warning("No name has been found on %s", file)
+                    return
+            else:
+                self.logger.warning("%s is not an icon theme", file)
+                return
         else:
             self.logger.error(f'Could not find icon theme name in {file}.')
             return
 
     def get_icons(self):
-        icon_paths = ['/usr/share/icons']
+        self.logger.info("Finding icons...")
+        icon_paths = ['/usr/share/icons', os.path.expanduser("~/.icons"), os.path.expanduser("~/.local/share/icons/")]
         icon_list = Gtk.StringList.new([])
 
-        for x in glob(icon_paths[0] + "/**/index.theme", recursive=True):
-            if os.path.exists(os.path.join(os.path.split(x)[0], 'cursor.theme')):
-                continue
-            if (n:= self._parse_icon_theme(x)) is not None:
-                icon_list.append(n)
+        exclusions = ["default", "hicolor", "locolor"]
+        
+        for dir in icon_paths:
+            for x in glob(dir + "/**/index.theme", recursive=True):
+                if os.path.exists(os.path.join(os.path.split(x)[0], 'cursor.theme')):
+                    continue
+                if os.path.basename(os.path.split(x)[0]) not in exclusions:
+                    if (n:= self._parse_icon_theme(x)) is not None:
+                        icon_list.append(n)
         
         return icon_list
 
     def get_current_icon_theme(self):
-        return self.get_string('icon-theme')
+        return self.get_string('icon-theme') 
 
     def set_icon_theme(self, icon_theme_name):
         self.set_string('icon-theme', icon_theme_name)
@@ -169,6 +181,7 @@ class GtkIconTheme(GtkConfig):
 class GtkCursorTheme(GtkConfig):
     def __init__(self):
         super().__init__()
+        self.appearance_conf = AppearanceConfig()
 
         self.logger = logging.getLogger('GtkCursorTheme')
 
@@ -193,6 +206,9 @@ class GtkCursorTheme(GtkConfig):
     
     def set_default_cursor_theme(self, cursor_theme: str):
         self.set_string('cursor-theme', cursor_theme)
+
+    def set_default_cursor_size(self, size: int):
+        self.set_int('cursor-size', size)
     
     def get_default_cursor_theme(self):
         return self.get_string('cursor-theme')

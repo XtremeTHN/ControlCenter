@@ -1,9 +1,10 @@
 import logging
 
-from modules.config import AppearanceConfig
+from modules.config import AppearanceConfig, GtkConfig
 from modules.tools import GtkThemes, GtkIconTheme, GtkCursorTheme, ScrolledBox, HBox, set_margins
+from modules.hyprland.ctl import HyprCtl
 
-from gi.repository import Gtk, GObject, Adw, Gio, GdkPixbuf
+from gi.repository import Gtk, GObject, Adw, Gio, GLib
 
 
 class AppearancePage(ScrolledBox):
@@ -26,11 +27,13 @@ class AppearancePage(ScrolledBox):
     def __init__(self):
         # AppearanceConfig.__init__(self)
         super().__init__()
-
+        
+        self.config = GtkConfig()
         self.logger = logging.getLogger('AppearancePage')
 
         self.gtk_themes = GtkThemes()
-        
+        self.ctl = HyprCtl()
+
         reload_button = Gtk.Button.new_from_icon_name("view-refresh-symbolic")
         reload_button.set_halign(Gtk.Align.CENTER)
 
@@ -61,7 +64,7 @@ class AppearancePage(ScrolledBox):
         # Font
         font_config = Adw.ExpanderRow(title="Font", subtitle="Customize the font and font size")
 
-        default_font = Adw.EntryRow(title="Font name", text=self.gtk_themes.font_value[0])
+        default_font = Adw.EntryRow(title="Font name", text=self.gtk_themes.font_value[0]) 
         default_font_size = Adw.SpinRow(adjustment=Gtk.Adjustment(value=int(self.gtk_themes.font_value[1]), step_increment=1, lower=0, upper=72), title="Font size")
 
         default_font.connect('changed', self.on_default_font_changed)
@@ -109,9 +112,16 @@ class AppearancePage(ScrolledBox):
         cursor_theme_combo.connect('notify::selected', self.on_cursor_theme_changed)
 
         self.set_default_selected_on_combo_row(cursor_theme_combo, self.cursors.get_default_cursor_theme())
-
+        
         cursor_theme_listbox_actions.append(cursor_theme_combo)
-    
+        
+        cursor_size_adjustment = Gtk.Adjustment(step_increment=1, upper=255, lower=4)
+        cursor_size = Adw.SpinRow(adjustment=cursor_size_adjustment, title="Cursor size")
+        
+        self.cursors.bind_config('cursor-size', cursor_size, "value")
+        
+        cursor_theme_listbox_actions.append(cursor_size)
+
     def on_icon_theme_changed(self, combo_row: Adw.ComboRow, *argv):
         self.icon_themes.set_icon_theme(str(combo_row.get_selected_item().get_string()))
             
@@ -125,7 +135,9 @@ class AppearancePage(ScrolledBox):
         self.gtk_themes.set_font_size(int(spin.get_value()))
     
     def on_cursor_theme_changed(self, combo_row: Adw.ComboRow, *argv):
-        self.cursors.set_default_cursor_theme(combo_row.get_selected_item().get_string())
+        cursor = combo_row.get_selected_item().get_string()
+        self.cursors.set_default_cursor_theme(cursor)
+        self.ctl.setCursor(cursor, 24)
 
     def reload_themes_model(self, _):
         self.gtk_theme.set_model(self.gtk_themes.get_themes_list())

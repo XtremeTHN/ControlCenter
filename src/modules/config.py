@@ -111,3 +111,4 @@ class GtkConfig(BaseConfiguration):
 
     def bindTheme(self, widget, prop):
         self.bind_config("theme", widget, prop)
+

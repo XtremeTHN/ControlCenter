@@ -56,7 +56,6 @@ class ControlCenterSideBar(HBox):
         self.append_button_to_sidebar(icon, label, name)
     
     def on_row_activate(self, listbox, row: Gtk.ListBox, *args):
-        print("asd")
         self.stack.set_visible_child_name(row.get_first_child().get_name().split('-')[0])
         
 
@@ -127,7 +126,6 @@ class ControlCenter(Adw.Application):
         self.win = self.props.active_window
         if not self.win:
             self.win = ControlCenterWindow(self)
-            # self.win = TestWindow(self)
         
         self.create_action('quit', self.exit_app, ['<primary>q'])
     
