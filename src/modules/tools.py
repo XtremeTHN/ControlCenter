@@ -23,12 +23,15 @@ def set_margins(widget: Gtk.Widget, margins: list[int]):
 
 def include_file(file: str) -> str:
     gfile = Gio.File.new_for_path(file)
-
+    
     return gfile.load_contents(None)[1].decode('utf-8')
 
 def include_bytes(file: str) -> bytes:
     gfile = Gio.File.new_for_path(file)
     return gfile.load_contents(None)[1]
+    
+def create_empty_file(file: str):
+    open(file, 'a').close()
 
 class ThemeParser:
     def __init__(self, file) -> None:
@@ -90,8 +93,6 @@ class GtkThemes(GtkConfig, GObject.GObject):
         self.logger = logging.getLogger("GtkThemes")
 
         self.themes_path = os.path.expanduser('~/.themes')
-
-        self._themes = self.get_themes_list()
 
     def _parse_theme(self, theme_path: str):
         theme = ThemeParser(theme_path).parse()

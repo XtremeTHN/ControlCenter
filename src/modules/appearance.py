@@ -25,7 +25,6 @@ class AppearancePage(ScrolledBox):
 		"gimp"
     ]
     def __init__(self):
-        # AppearanceConfig.__init__(self)
         super().__init__()
         
         self.config = GtkConfig()
@@ -34,20 +33,17 @@ class AppearancePage(ScrolledBox):
         self.gtk_themes = GtkThemes()
         self.ctl = HyprCtl()
 
-        reload_button = Gtk.Button.new_from_icon_name("view-refresh-symbolic")
-        reload_button.set_halign(Gtk.Align.CENTER)
-
-        reload_button.connect('clicked', self.reload_themes_model)
-
-        style_group_listbox_actions = self.create_new_group("Style of widgets", "Customize the appearance of Gtk widgets", suffix=reload_button)
+        style_group_listbox_actions = self.create_new_group("Style of widgets", "Customize the appearance of Gtk widgets")
 
         # Gtk Theme
-        self.gtk_theme = Adw.ComboRow(title="GTK theme", subtitle="Global gtk theme (from ~/.themes)")
-        self.gtk_theme.set_model(self.gtk_themes._themes)
+        gtk_theme_model = self.gtk_themes.get_themes_list()
+        gtk_theme = Adw.ComboRow(model=gtk_theme_model, title="GTK theme", subtitle="Global gtk theme (from ~/.themes)")
+        
+        self.set_default_selected_on_combo_row(gtk_theme, self.gtk_themes.get_string('gtk-theme'))
 
-        self.gtk_theme.connect('notify::selected', self.change_theme)
+        gtk_theme.connect('notify::selected', self.on_theme_selected)
 
-        style_group_listbox_actions.append(self.gtk_theme)
+        style_group_listbox_actions.append(gtk_theme)
         # End Gtk Theme
 
         # Color scheme
@@ -139,11 +135,8 @@ class AppearancePage(ScrolledBox):
         self.cursors.set_default_cursor_theme(cursor)
         self.ctl.setCursor(cursor, 24)
 
-    def reload_themes_model(self, _):
-        self.gtk_theme.set_model(self.gtk_themes.get_themes_list())
-        
-    def change_theme(self, combo_row: Adw.ComboRow, _):
-        theme: Gtk.StringObject = self.gtk_themes._themes.get_item(combo_row.get_selected())
+    def on_theme_selected(self, combo_row: Adw.ComboRow, _):
+        theme = combo_row.get_selected_item()
         self.gtk_themes.set_theme(theme.get_string())
 
     def create_new_group(self, title, description, suffix=None):
