@@ -1,9 +1,15 @@
-from gi.repository import Gtk, Gio, GObject
+from gi.repository import Adw, Gtk, Gio, GObject
 from modules.config import GtkConfig, AppearanceConfig
 from glob import glob
 
 import os
 import logging
+
+def create_header():
+    sidebar_toolbar = Adw.ToolbarView.new()
+    sidebar_header = Adw.HeaderBar.new()
+    sidebar_toolbar.add_top_bar(sidebar_header)
+    return sidebar_toolbar, sidebar_header
 
 def set_margins(widget: Gtk.Widget, margins: list[int]):
     """
@@ -124,7 +130,7 @@ class GtkThemes(GtkConfig, GObject.GObject):
 
 class ScrolledBox(Gtk.ScrolledWindow):
     def __init__(self, **box_args):
-        self.box = Gtk.Box(spacing=10, orientation=Gtk.Orientation.VERTICAL, **box_args)
+        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, **box_args)
         super().__init__(child=self.box)
     
     def apppends(self, *widgets):

@@ -25,7 +25,7 @@ class AppearancePage(ScrolledBox):
 		"gimp"
     ]
     def __init__(self):
-        super().__init__()
+        super().__init__(spacing=20)
         
         self.config = GtkConfig()
         self.logger = logging.getLogger('AppearancePage')
@@ -90,7 +90,7 @@ class AppearancePage(ScrolledBox):
         icons_flow_box = Gtk.FlowBox.new()
 
         for x in self.ICON_VIEW_ICONS:
-            icon = Gtk.Image.new_from_gicon(Gio.ThemedIcon.new(x))
+            icon = Gtk.Image.new_from_icon_name(x)
             icon.set_icon_size(Gtk.IconSize.LARGE)
             icons_flow_box.append(icon)
 
