@@ -1,11 +1,18 @@
 from modules.tools import include_file, create_empty_file
-from modules.hyprland.ctl import HyprCtl
+from modules.hyprland.ctl import HyprCtl, Monitor
 
 import logging
+import 
 import os
 
-class Displays:
+class Displays(HyprCtl):
+    """
+        Parse the monitor config file.
+        Monitor config goes in this order:
+        MONITOR_NAME,RESOLUTION@MON_HERTZ,POSITION,FRACTIONAL_SCALE
+    """
     def __init__(self):
+        super().__init__()
         self.logger = logging.getLogger("Displays")
         self.file_path = os.path.expanduser("~/.config/hypr/")
         if not os.path.exists(self.file_path):
@@ -17,19 +24,20 @@ class Displays:
             self.logger.error("Hyprland monitors config file doesn't exists! Creating it...")
             create_empty_file(self.hypr_monitor_file_path)
 
-        self.hypr_monitor_file = include_file(self.hypr_monitor_file_path)
-        self.logger.info("Parsing monitor files...")
-        self._parse_conf_file(self.hypr_monitor_file)
+    def get_monitors(self):
+        return self.getMonitors()
 
-    def _parse_conf_file(self, content: str):
-        for lineno, line in enumerate(content.splitlines()):
-            if line.startswith("#"):
-                continue
-            try:
-                mon_conf = line.split("=")
-                if mon_conf[0] != "monitor":
-                    continue
+    def serialize(self, monitors: list[Monitor]):
+        monitors_string_list = []
+        for x in monitors:
+            string = "monitor="
+            string += f"{x.name},"
+            string += f"{x.width}x{x.height}@{int(x.refreshRate)},"
+            string += f"{x.x}x{x.y},"
+            string += str(x.scale)
+            string += "\n"
 
-            except Exception as e:
-                self.logger.warning(f"Error while parsing line {lineno} on monitors.conf")
-                self.logger.debug(f"Exception: {e}")
+            monitors_string_list.append(string)
+        
+        with open(self.hypr_monitor_file_path, 'w') as file:
+            file.writelines(monitors_string_list)

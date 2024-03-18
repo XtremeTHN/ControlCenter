@@ -176,6 +176,8 @@ class GtkIconTheme(GtkConfig):
                 if os.path.basename(os.path.split(x)[0]) not in exclusions:
                     if (n:= self._parse_icon_theme(x)) is not None:
                         icon_list.append(n)
+                else:
+                    self.logger.debug("Icon theme is in exclusion list")
         
         return icon_list
 
@@ -195,10 +197,11 @@ class GtkCursorTheme(GtkConfig):
     def get_cursors(self):
         cursor_paths = ['/usr/share/icons', os.path.expanduser('~/.icons')]
         cursor_list = Gtk.StringList.new([])
-
-        for x in glob(cursor_paths[0] + "/**/cursor.theme", recursive=True):
-            if (n:= self._parse_cursor_theme(x)) is not None:
-                cursor_list.append(n)
+        for path in cursor_paths:
+            for x in glob(path + "/**/cursor.theme", recursive=True):
+                print(x)
+                if (n:= self._parse_cursor_theme(x)) is not None:
+                    cursor_list.append(n)
         
         return cursor_list
 
@@ -219,3 +222,31 @@ class GtkCursorTheme(GtkConfig):
     
     def get_default_cursor_theme(self):
         return self.get_string('cursor-theme')
+
+class ConfigPage(ScrolledBox):
+    def __init__(self, logger_name=None, **box_args):
+        self.logger = logging.getLogger(logger_name if logger_name is not None else "ConfigPage")
+        super().__init__(**box_args)
+    
+    def create_new_group(self, title, description, suffix=None):
+        group = Adw.PreferencesGroup(title=title, description=description)
+        if suffix is not None:
+            if isinstance(suffix, Gtk.Widget):
+                group.set_header_suffix(suffix=suffix)
+            else:
+                self.logger.warning("The provided suffix widget is not an instance of Gtk.Widget, fix it pls, or remove this verification")
+                self.logger.warning("Ignoring suffix...")
+
+        listbox_actions = Gtk.ListBox.new()
+        listbox_actions.set_selection_mode(Gtk.SelectionMode.NONE)
+        listbox_actions.get_style_context().add_class('boxed-list')
+        
+        group.add(listbox_actions)
+        self.append(group)
+        return listbox_actions
+    
+    def set_default_selected_on_combo_row(self, comborow: Adw.ComboRow, condition):
+        model = comborow.get_model()
+        for x in range(0, model.get_n_items()):
+            if model.get_item(x).get_string() == condition:
+                comborow.set_selected(x)

@@ -5,71 +5,15 @@ from modules.tools import VBox, HBox, set_margins, create_header
 from modules.appearance import AppearancePage
 from gi.repository import Gtk, Adw, Gio, Gdk
 
-# class ControlCenterSideBar():
-#     def __init__(self, transition_type):
-#         self.split_view = Adw.NavigationSplitView()
-
-
-#         self.content_page = Adw.NavigationPage(title="Control Center", tag="content")
-
-#         self.sidebar_page = Adw.NavigationPage(title="Control Center", tag="sidebar")
-#         self.sidebar = VBox(spacing=0)
-#         self.sidebar.set_size_request(200, 1)
-
-#         self.sidebar_content = Gtk.ListBox.new()
-#         self.sidebar_content.connect('row-activated', self.on_row_activate)
-#         self.sidebar_content.add_css_class('navigation-sidebar')
-
-#         self.sidebar_header = Adw.HeaderBar.new()
-#         self.sidebar_header.set_title_widget(Gtk.Label(label="Configuration"))
-#         self.sidebar_header.set_show_end_title_buttons(False)
-#         self.sidebar_header.pack_end(Gtk.Button.new_from_icon_name("open-menu-symbolic"))
-        
-#         self.content_box = VBox(spacing=0)
-#         self.content_box = VBox(spacing=2, hexpand=True)
-
-#         set_margins(self.content_box, [8])
-
-#         self.content_box_header_title = Gtk.Label(label="Control Center")
-#         self.content_box_header = Adw.HeaderBar(title_widget=self.content_box_header_title, hexpand=True)
-
-#         self.stack = Gtk.Stack(transition_duration=500, transition_type=transition_type)
-#         self.content_box_header_title.bind_property("label", self.stack, "visible-child-name")
-
-#         self.sidebar.appends(self.sidebar_header, self.sidebar_content)
-#         self.content_box.append(self.stack)
-#         self.content_box.appends(self.content_box_header, self.content_box)
-
-#         self.sidebar_page.set_child(self.sidebar)
-#         self.content_page.set_child(self.content_box)
-
-#         self.split_view.set_sidebar(self.sidebar_page)
-#         self.split_view.set_content(self.content_page)
-    
-#     def append_to_stack(self, widget: Gtk.Widget, name: str):
-#         self.stack.add_named(widget, name)
-
-#     def append_button_to_sidebar(self, icon, label, target):
-#         btt_content = HBox(name=f"{target}-button")
-
-#         btt_content_image = Gtk.Image.new_from_icon_name(icon)
-#         btt_content_label = Gtk.Label.new(label)
-
-#         btt_content.appends(btt_content_image, btt_content_label)
-
-#         self.sidebar_content.append(btt_content)
-
-#     def append_both(self, widget, name, icon, label):
-#         self.append_to_stack(widget, name)
-#         self.append_button_to_sidebar(icon, label, name)
-    
-#     def on_row_activate(self, listbox, row: Gtk.ListBox, *args):
-#         self.stack.set_visible_child_name(row.get_first_child().get_name().split('-')[0])
-        
 class ControlCenterSideBar:
     def __init__(self):
         self.split_view = Adw.NavigationSplitView(show_content=True, min_sidebar_width=200, hexpand=True, vexpand=True)
-
+        
+        # condition = Adw.BreakpointCondition.new_length(type=Adw.BreakpointConditionLengthType.MAX_WIDTH, value=400, unit=Adw.LengthUnit.SP)
+        
+        # self.breakpoint = Adw.Breakpoint(condition=condition)
+        # self.breakpoint.add_setter(self.split_view, "collapsed", True)
+        
         self.sidebar_page = Adw.NavigationPage(title="Control Center", tag="sidebar")
 
         # A widget holding the header and the content
@@ -89,9 +33,9 @@ class ControlCenterSideBar:
 
         self.content, self.content_header = create_header()
 
-        set_margins(self.content, [0,10,0,10])
-
         self.stack = Gtk.Stack(transition_duration=500, transition_type=Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
+        set_margins(self.stack, [0,10,0,10])
+
         self.content.set_content(self.stack)
 
         self.content_page.set_child(self.content)
@@ -117,7 +61,6 @@ class ControlCenterSideBar:
         self.append_button_to_sidebar(icon, label, name)
 
     def on_row_activate(self, listbox, row: Gtk.ListBox, *args):
-        print('asd')
         self.stack.set_visible_child_name(row.get_first_child().get_name().split('-')[0])
 
 class ControlCenterWindow(Adw.ApplicationWindow):
@@ -170,8 +113,10 @@ class ControlCenter(Adw.Application):
         )
     
     def do_activate(self) -> None:
-        res = Gio.Resource.load('src/res/com.github.XtremeTHN.ControlCenter.gresource')
-        Gio.resources_register(res)
+        #        res = Gio.Resource.load('src/res/com.github.XtremeTHN.ControlCenter.gresource')
+        #Gio.resources_register(res)
+
+        Adw.StyleManager().set_color_scheme(Adw.ColorScheme.FORCE_DARK)
 
         self.win = self.props.active_window
         if not self.win:

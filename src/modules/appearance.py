@@ -1,13 +1,13 @@
 import logging
 
 from modules.config import AppearanceConfig, GtkConfig
-from modules.tools import GtkThemes, GtkIconTheme, GtkCursorTheme, ScrolledBox, HBox, set_margins
+from modules.tools import GtkThemes, GtkIconTheme, GtkCursorTheme, ConfigPage, HBox, set_margins
 from modules.hyprland.ctl import HyprCtl
 
 from gi.repository import Gtk, GObject, Adw, Gio, GLib
 
 
-class AppearancePage(ScrolledBox):
+class AppearancePage(ConfigPage):
     ICON_VIEW_ICONS=[
         "user-home",
 		"user-desktop",
@@ -25,10 +25,9 @@ class AppearancePage(ScrolledBox):
 		"gimp"
     ]
     def __init__(self):
-        super().__init__(spacing=20)
+        super().__init__(logger_name="AppearancePage", spacing=20)
         
         self.config = GtkConfig()
-        self.logger = logging.getLogger('AppearancePage')
 
         self.gtk_themes = GtkThemes()
         self.ctl = HyprCtl()
@@ -104,19 +103,21 @@ class AppearancePage(ScrolledBox):
 
         cursor_theme_listbox_actions = self.create_new_group("Cursor theme", "Set and visualize the cursor theme!")
 
-        cursor_theme_combo = Adw.ComboRow(model=self.cursors.get_cursors(), title="Global cursor theme", subtitle="Set the global cursor theme by choosing it from the combobox")
-        cursor_theme_combo.connect('notify::selected', self.on_cursor_theme_changed)
+        self.cursor_theme_combo = Adw.ComboRow(model=self.cursors.get_cursors(), title="Global cursor theme", subtitle="Set the global cursor theme by choosing it from the combobox")
 
-        self.set_default_selected_on_combo_row(cursor_theme_combo, self.cursors.get_default_cursor_theme())
+        self.set_default_selected_on_combo_row(self.cursor_theme_combo, self.cursors.get_default_cursor_theme())
         
-        cursor_theme_listbox_actions.append(cursor_theme_combo)
+        cursor_theme_listbox_actions.append(self.cursor_theme_combo)
         
         cursor_size_adjustment = Gtk.Adjustment(step_increment=1, upper=255, lower=4)
-        cursor_size = Adw.SpinRow(adjustment=cursor_size_adjustment, title="Cursor size")
+        self.cursor_size = Adw.SpinRow(adjustment=cursor_size_adjustment, title="Cursor size")
         
-        self.cursors.bind_config('cursor-size', cursor_size, "value")
+        self.cursor_size.connect("notify::value", self.on_cursor_size_changed)
+        self.cursor_theme_combo.connect('notify::selected', self.on_cursor_theme_changed)
         
-        cursor_theme_listbox_actions.append(cursor_size)
+        self.cursors.bind_config('cursor-size', self.cursor_size, "value")
+        
+        cursor_theme_listbox_actions.append(self.cursor_size)
 
     def on_icon_theme_changed(self, combo_row: Adw.ComboRow, *argv):
         self.icon_themes.set_icon_theme(str(combo_row.get_selected_item().get_string()))
@@ -133,31 +134,16 @@ class AppearancePage(ScrolledBox):
     def on_cursor_theme_changed(self, combo_row: Adw.ComboRow, *argv):
         cursor = combo_row.get_selected_item().get_string()
         self.cursors.set_default_cursor_theme(cursor)
-        self.ctl.setCursor(cursor, 24)
+        self.ctl.setCursor(cursor, int(self.cursor_size.get_value()))
 
+    def on_cursor_size_changed(self, spin, *argv):
+        selected_item = self.cursor_theme_combo.get_selected_item()
+        if selected_item is not None:
+            self.ctl.setCursor(selected_item.get_string(), int(spin.get_value()))
+        else:
+            self.logger.warning("Theres no selected item on cursor size spin widget")
+    
     def on_theme_selected(self, combo_row: Adw.ComboRow, _):
         theme = combo_row.get_selected_item()
         self.gtk_themes.set_theme(theme.get_string())
 
-    def create_new_group(self, title, description, suffix=None):
-        group = Adw.PreferencesGroup(title=title, description=description)
-        if suffix is not None:
-            if isinstance(suffix, Gtk.Widget):
-                group.set_header_suffix(suffix=suffix)
-            else:
-                self.logger.warning("The provided suffix widget is not an instance of Gtk.Widget, fix it pls, or remove this verification")
-                self.logger.warning("Ignoring suffix...")
-
-        listbox_actions = Gtk.ListBox.new()
-        listbox_actions.set_selection_mode(Gtk.SelectionMode.NONE)
-        listbox_actions.get_style_context().add_class('boxed-list')
-        
-        group.add(listbox_actions)
-        self.append(group)
-        return listbox_actions
-    
-    def set_default_selected_on_combo_row(self, comborow: Adw.ComboRow, condition):
-        model = comborow.get_model()
-        for x in range(0, model.get_n_items()):
-            if model.get_item(x).get_string() == condition:
-                comborow.set_selected(x)
