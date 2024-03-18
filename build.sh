@@ -1,4 +1,4 @@
 echo :: Building
-python3 -m nauitka --follow-imports src/main.py
+python3 -m nuitka --follow-imports src/main.py
 
 echo :: Successful

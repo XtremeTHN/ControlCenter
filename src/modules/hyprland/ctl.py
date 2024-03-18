@@ -11,6 +11,12 @@ def deserialize_dict(self, dictionary: dict):
 
 class Monitor:
     def __init__(self, **kwargs):
+        """
+        Monitor class.
+        The majority of the properties are merely for information.
+        This properties will not be ignored:
+            name, resolution, refreshRate, x, y, scale
+        """
         self.id: int
         self.name: str
         self.description: str
@@ -26,8 +32,14 @@ class Monitor:
         self.scale: float
         self.transform: int
         self.focused: bool
+
+        # Display Power Management Signaling
         self.dpmStatus: bool
+
+        # Variable Refresh Rate
         self.vrr: bool
+
+        # Screen Tearing, idk what this is for
         self.activelyTearing: bool
         
         deserialize_dict(self, kwargs)

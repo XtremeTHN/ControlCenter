@@ -2,17 +2,13 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from modules.tools import VBox, HBox, set_margins, create_header
-from modules.appearance import AppearancePage
+from modules.widgets.appearance import AppearancePage
+from modules.widgets.displays import Displays
 from gi.repository import Gtk, Adw, Gio, Gdk
 
 class ControlCenterSideBar:
     def __init__(self):
         self.split_view = Adw.NavigationSplitView(show_content=True, min_sidebar_width=200, hexpand=True, vexpand=True)
-        
-        # condition = Adw.BreakpointCondition.new_length(type=Adw.BreakpointConditionLengthType.MAX_WIDTH, value=400, unit=Adw.LengthUnit.SP)
-        
-        # self.breakpoint = Adw.Breakpoint(condition=condition)
-        # self.breakpoint.add_setter(self.split_view, "collapsed", True)
         
         self.sidebar_page = Adw.NavigationPage(title="Control Center", tag="sidebar")
 
@@ -71,12 +67,14 @@ class ControlCenterWindow(Adw.ApplicationWindow):
         
         self.main = HBox()
 
-        self.sidebar = ControlCenterSideBar()
+        self.content = ControlCenterSideBar()
 
-        self.sidebar.append_to_stack(self.create_placeholder(), "placeholder")
-        self.sidebar.append_both(AppearancePage(), "appearance", "preferences-system-symbolic", "Appearance")
+        self.content.append_to_stack(self.create_placeholder(), "placeholder")
+        self.content.append_both(AppearancePage(), "appearance", "preferences-system-symbolic", "Appearance")
 
-        self.main.append(self.sidebar.split_view)
+        self.content.append_both(Displays(), "displays", "applications-display-symbolic", "Displays")
+
+        self.main.append(self.content.split_view)
 
         self.set_content(self.main)
 
