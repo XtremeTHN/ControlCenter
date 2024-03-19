@@ -75,7 +75,7 @@ class Displays(ConfigPage):
 
         monitors_group.append(displays_btts_row)
         
-        self.append(self.monitors_configuration_group_stack)
+        self.scroll_box.append(self.monitors_configuration_group_stack)
 
     def on_monitor_btt_clicked(self, _, monitor):
         self.current_monitor_id = monitor.id

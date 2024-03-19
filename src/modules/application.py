@@ -6,8 +6,31 @@ from modules.widgets.appearance import AppearancePage
 from modules.widgets.displays import Displays
 from gi.repository import Gtk, Adw, Gio, Gdk
 
+def create_placeholder() -> VBox:
+    """Creates a placeholder
+
+    Returns:
+        VBox: A VBox containing the placeholder widgets
+    """
+    _placeholder = VBox(spacing=0, vexpand=True, hexpand=True)
+    _placeholder.set_valign(Gtk.Align.CENTER)
+
+    placeholder_image = Gtk.Image(icon_name="preferences-system-symbolic")
+    placeholder_image.set_pixel_size(90)
+    placeholder_image.set_opacity(0.7)
+
+    placeholder_title = Gtk.Label.new("<span weight=\"bold\" size=\"larger\">Welcome to Control Center!</span>")
+    placeholder_title.set_use_markup(True)
+
+    _placeholder.append(placeholder_image)
+    _placeholder.append(placeholder_title)
+
+    return _placeholder
+
 class ControlCenterSideBar:
     def __init__(self):
+        self.children: dict[str, Adw.NavigationPage] = {}
+        
         self.split_view = Adw.NavigationSplitView(show_content=True, min_sidebar_width=200, hexpand=True, vexpand=True)
         
         self.sidebar_page = Adw.NavigationPage(title="Control Center", tag="sidebar")
@@ -25,19 +48,22 @@ class ControlCenterSideBar:
 
         self.sidebar_page.set_child(self.sidebar)
 
-        self.content_page = Adw.NavigationPage(title="Control Center", tag="content")
+        self.placeholder_page = Adw.NavigationPage(title="Control Center", tag="content")
 
-        self.content, self.content_header = create_header()
+        self.placeholder, self.placeholder_header = create_header()
+        
+        self.placeholder_content = create_placeholder()
 
-        self.stack = Gtk.Stack(transition_duration=500, transition_type=Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-        set_margins(self.stack, [0,10,0,10])
-
-        self.content.set_content(self.stack)
-
-        self.content_page.set_child(self.content)
+        self.placeholder_page.set_child(self.placeholder_content)
 
         self.split_view.set_sidebar(self.sidebar_page)
-        self.split_view.set_content(self.content_page)
+        self.split_view.set_content(self.placeholder_page)
+        
+    def add_named(self, widget, tag, title):
+        if isinstance(widget, Gtk.Widget):
+            self.children[tag] = Adw.NavigationPage(child=widget, title=title, name=tag)
+        else:
+            print("WARNING: Expected Adw.NavigationPage on ControlCenterSideBar, no", type(widget))
     
     def append_button_to_sidebar(self, icon, label, target):
         btt_content = HBox(name=f"{target}-button")
@@ -48,16 +74,15 @@ class ControlCenterSideBar:
         btt_content.appends(btt_content_image, btt_content_label)
 
         self.sidebar_content.append(btt_content)
-
-    def append_to_stack(self, widget: Gtk.Widget, name: str):
-        self.stack.add_named(widget, name)
     
     def append_both(self, widget, name, icon, label):
-        self.append_to_stack(widget, name)
+        self.add_named(widget, name, label)
         self.append_button_to_sidebar(icon, label, name)
 
     def on_row_activate(self, listbox, row: Gtk.ListBox, *args):
-        self.stack.set_visible_child_name(row.get_first_child().get_name().split('-')[0])
+        target_name = row.get_first_child().get_name().split('-')[0]
+        if self.split_view.props.content.get_name() != target_name:
+            self.split_view.set_content(self.children[target_name])
 
 class ControlCenterWindow(Adw.ApplicationWindow):
     def __init__(self, app):
@@ -69,7 +94,7 @@ class ControlCenterWindow(Adw.ApplicationWindow):
 
         self.content = ControlCenterSideBar()
 
-        self.content.append_to_stack(self.create_placeholder(), "placeholder")
+        # self.content.append_to_stack(self.create_placeholder(), "placeholder")
         self.content.append_both(AppearancePage(), "appearance", "preferences-system-symbolic", "Appearance")
 
         self.content.append_both(Displays(), "displays", "applications-display-symbolic", "Displays")
@@ -83,22 +108,6 @@ class ControlCenterWindow(Adw.ApplicationWindow):
     def color_callback(self, widget, color_scheme_name):
         if widget.get_active():
             print("Yes", color_scheme_name)
-    
-    def create_placeholder(self):
-        _placeholder = VBox(spacing=0, vexpand=True, hexpand=True)
-        _placeholder.set_valign(Gtk.Align.CENTER)
-
-        placeholder_image = Gtk.Image(icon_name="preferences-system-symbolic")
-        placeholder_image.set_pixel_size(90)
-        placeholder_image.set_opacity(0.7)
-
-        placeholder_title = Gtk.Label.new("<span weight=\"bold\" size=\"larger\">Welcome to Control Center!</span>")
-        placeholder_title.set_use_markup(True)
-
-        _placeholder.append(placeholder_image)
-        _placeholder.append(placeholder_title)
-
-        return _placeholder
     
     def toggle_placeholder(self, toggled=None):
         self._placeholder.set_visible(not self.get_visible() if toggled is None else toggled)

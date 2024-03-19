@@ -6,6 +6,12 @@ import os
 import logging
 
 def create_header():
+    """
+    Creates a header
+    
+    Returns:
+        tuple(Adw.ToolBarView, Adw.HeaderBar): a Adw.ToolBar containing the header, and the header widget
+    """
     sidebar_toolbar = Adw.ToolbarView.new()
     sidebar_header = Adw.HeaderBar.new()
     sidebar_toolbar.add_top_bar(sidebar_header)
@@ -141,10 +147,17 @@ class ScrolledBox(Gtk.ScrolledWindow):
         self.box.append(widget)
 
 
-class ConfigPage(ScrolledBox):
+class ConfigPage(VBox):
     def __init__(self, logger_name=None, **box_args):
         self.logger = logging.getLogger(logger_name if logger_name is not None else "ConfigPage")
-        super().__init__(**box_args)
+        super().__init__(spacing=2)
+        
+        self.toolbar, self.header = create_header()
+
+        self.scroll_box = ScrolledBox(vexpand=True, **box_args)
+        set_margins(self.scroll_box, [10])
+        
+        self.appends(self.toolbar, self.scroll_box)
     
     def create_new_group(self, title, description, suffix=None, append=True):
         group = Adw.PreferencesGroup(title=title, description=description)
@@ -161,7 +174,7 @@ class ConfigPage(ScrolledBox):
         
         group.add(listbox_actions)
         if append is True:
-            self.append(group)
+            self.scroll_box.append(group)
             return listbox_actions
         else:
             return group, listbox_actions

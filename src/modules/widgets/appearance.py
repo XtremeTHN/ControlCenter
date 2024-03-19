@@ -87,6 +87,8 @@ class AppearancePage(ConfigPage):
         # Preview Icon
         icons_preview_row = Adw.ActionRow(subtitle="Preview icons in the current theme")
         icons_flow_box = Gtk.FlowBox.new()
+        
+        set_margins(icons_flow_box, [10])
 
         for x in self.ICON_VIEW_ICONS:
             icon = Gtk.Image.new_from_icon_name(x)
