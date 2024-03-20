@@ -4,7 +4,7 @@ gi.require_version("Adw", "1")
 from modules.tools import VBox, HBox, set_margins, create_header
 from modules.widgets.appearance import AppearancePage
 from modules.widgets.displays import Displays
-from gi.repository import Gtk, Adw, Gio, Gdk
+from gi.repository import Gtk, Adw, Gio, GLib
 
 def create_placeholder() -> VBox:
     """Creates a placeholder
@@ -31,7 +31,7 @@ class ControlCenterSideBar:
     def __init__(self):
         self.children: dict[str, Adw.NavigationPage] = {}
         
-        self.split_view = Adw.NavigationSplitView(show_content=True, min_sidebar_width=200, hexpand=True, vexpand=True)
+        self.split_view = Adw.NavigationSplitView(collapsed=True, min_sidebar_width=200, hexpand=True, vexpand=True)
         
         self.sidebar_page = Adw.NavigationPage(title="Control Center", tag="sidebar")
 
@@ -61,28 +61,35 @@ class ControlCenterSideBar:
         
     def add_named(self, widget, tag, title):
         if isinstance(widget, Gtk.Widget):
-            self.children[tag] = Adw.NavigationPage(child=widget, title=title, name=tag)
+            self.children[tag] = Adw.NavigationPage(child=widget, title=title, tag=tag)
         else:
             print("WARNING: Expected Adw.NavigationPage on ControlCenterSideBar, no", type(widget))
     
     def append_button_to_sidebar(self, icon, label, target):
+        btt = Gtk.ListBoxRow.new()
+        
         btt_content = HBox(name=f"{target}-button")
 
         btt_content_image = Gtk.Image.new_from_icon_name(icon)
         btt_content_label = Gtk.Label.new(label)
 
         btt_content.appends(btt_content_image, btt_content_label)
+        
+        btt.set_child(btt_content)
 
-        self.sidebar_content.append(btt_content)
+        self.sidebar_content.append(btt)
     
     def append_both(self, widget, name, icon, label):
         self.add_named(widget, name, label)
         self.append_button_to_sidebar(icon, label, name)
 
-    def on_row_activate(self, listbox, row: Gtk.ListBox, *args):
+    def on_row_activate(self, listbox, row: Gtk.ListBoxRow, *args):
         target_name = row.get_first_child().get_name().split('-')[0]
+        
         if self.split_view.props.content.get_name() != target_name:
             self.split_view.set_content(self.children[target_name])
+            self.split_view.activate_action("navigation.push", GLib.Variant.new_string(target_name))
+
 
 class ControlCenterWindow(Adw.ApplicationWindow):
     def __init__(self, app):
