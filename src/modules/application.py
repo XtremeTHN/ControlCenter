@@ -1,9 +1,13 @@
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from modules.tools import VBox, HBox, set_margins, create_header
+
+from modules.tools.custom_widgets import VBox, HBox, create_header
+from modules.tools.utilities import set_margins
+
 from modules.widgets.appearance import AppearancePage
 from modules.widgets.displays import Displays
+from modules.widgets.energy import Energy
 from gi.repository import Gtk, Adw, Gio, GLib
 
 def create_placeholder() -> VBox:
@@ -31,12 +35,12 @@ class ControlCenterSideBar:
     def __init__(self):
         self.children: dict[str, Adw.NavigationPage] = {}
         
-        self.split_view = Adw.NavigationSplitView(collapsed=True, min_sidebar_width=200, hexpand=True, vexpand=True)
+        self.split_view = Adw.NavigationSplitView(min_sidebar_width=200, hexpand=True, vexpand=True)
         
         self.sidebar_page = Adw.NavigationPage(title="Control Center", tag="sidebar")
 
         # A widget holding the header and the content
-        self.sidebar, self.sidebar_header = create_header()
+        self.sidebar, _ = create_header()
 
         self.sidebar_content = Gtk.ListBox.new()
         self.sidebar_content.connect('row-activated', self.on_row_activate)
@@ -50,7 +54,7 @@ class ControlCenterSideBar:
 
         self.placeholder_page = Adw.NavigationPage(title="Control Center", tag="content")
 
-        self.placeholder, self.placeholder_header = create_header()
+        self.placeholder, _= create_header()
         
         self.placeholder_content = create_placeholder()
 
@@ -101,10 +105,11 @@ class ControlCenterWindow(Adw.ApplicationWindow):
 
         self.content = ControlCenterSideBar()
 
-        # self.content.append_to_stack(self.create_placeholder(), "placeholder")
         self.content.append_both(AppearancePage(), "appearance", "preferences-system-symbolic", "Appearance")
 
         self.content.append_both(Displays(), "displays", "applications-display-symbolic", "Displays")
+        
+        self.content.append_both(Energy(), "energy", "battery-full-symbolic", "Energy")
 
         self.main.append(self.content.split_view)
 

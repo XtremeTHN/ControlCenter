@@ -1,4 +1,4 @@
-from modules.tools import create_empty_file
+from modules.tools.utilities import create_empty_file
 from modules.hyprland.ctl import HyprCtl, Monitor
 from datetime import datetime
 

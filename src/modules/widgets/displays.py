@@ -1,6 +1,7 @@
 from gi.repository import Adw, Gtk, GObject
 from modules.monitors import Monitors
-from modules.tools import ConfigPage, HBox, VBox, set_margins
+from modules.tools.custom_widgets import ConfigPage, InfoRow, VBox
+from modules.tools.utilities import set_margins
 
 resolution = Gtk.StringList.new([
     "1920x1080",
@@ -14,29 +15,6 @@ resolution = Gtk.StringList.new([
     "1024x600",
     "800x600",
 ])
-
-def InfoRow(title, subtitle, info):
-    box = HBox(spacing=10, homogeneous=True)
-
-    labels_box = VBox(spacing=0)
-    
-    title_widget =  Gtk.Label(halign=Gtk.Align.START, valign=Gtk.Align.CENTER, hexpand=True, label=f"{title}")
-    labels_box.append(title_widget)
-
-    margins = [8, 15, 8, 15]
-    if subtitle != "":
-        subtitle_widget = Gtk.Label(halign=Gtk.Align.START, valign=Gtk.Align.CENTER, hexpand=True, label=f"{subtitle}", css_classes=["dim-label", "caption"])
-        labels_box.append(subtitle_widget)
-    else:
-        margins = [15, 13, 15, 13]
-
-    box.append(labels_box)
-
-    info_label = Gtk.Label(label=info, halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
-    box.append(info_label)
-
-    set_margins(box, margins)
-    return box
 
 class Displays(ConfigPage):
     def __init__(self):

@@ -1,13 +1,16 @@
 import logging
 
-from modules.config import AppearanceConfig, GtkConfig
-from modules.tools import GtkThemes, GtkIconTheme, GtkCursorTheme, ConfigPage, HBox, set_margins
+from modules.config import GtkConfig
+
+from modules.tools.themes import GtkThemes, GtkIconTheme, GtkCursorTheme
+from modules.tools.custom_widgets import ConfigPage, HBox
+from modules.tools.utilities import set_margins
+
 from modules.hyprland.ctl import HyprCtl
 
 from gi.repository import Gtk, GObject, Adw, Gio, GLib
 
-
-class AppearancePage(ConfigPage):
+class GtkAppearanceConfig(ConfigPage):
     ICON_VIEW_ICONS=[
         "user-home",
 		"user-desktop",
@@ -25,7 +28,7 @@ class AppearancePage(ConfigPage):
 		"gimp"
     ]
     def __init__(self):
-        super().__init__(logger_name="AppearancePage", spacing=20)
+        super().__init__("AppearancePage > GtkAppearanceConfig", header=False, spacing=20)
         
         self.config = GtkConfig()
 
@@ -149,3 +152,22 @@ class AppearancePage(ConfigPage):
         theme = combo_row.get_selected_item()
         self.gtk_themes.set_theme(theme.get_string())
 
+
+
+class AppearancePage(ConfigPage):
+    def __init__(self):
+        super().__init__(logger_name="AppearancePage", add_scroll_box=False, spacing=20)
+        
+        self.view_switcher = Adw.ViewSwitcher(policy=Adw.ViewSwitcherPolicy.WIDE, vexpand=False)
+        self.view_switcher_stack = Adw.ViewStack()
+        
+        self.gtk_appearance_config = GtkAppearanceConfig()
+        
+        self.view_switcher_stack.add_titled_with_icon(self.gtk_appearance_config, "gtkconfig-page", "Gtk Config", "applications-system-symbolic")
+        
+        self.desktop_appearance_config = ...
+        
+        self.view_switcher.set_stack(self.view_switcher_stack)
+        self.header.set_title_widget(self.view_switcher)
+        
+        self.append(self.view_switcher_stack)
