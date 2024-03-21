@@ -50,14 +50,31 @@ class HyprCtl(HyprctlClass):
 
     def setCursor(self, cursor_theme_name: str, cursor_size: int):
         """
-        Sets the cursor theme and reloads the cursor manager. Will set the theme for everything except GTK, because GTK.
+        Sets the cursor theme and reloads the cursor manager. Will set the theme for everything except GTK, because GTK uses gsettings.
+        
+        Args:
+            cursor_theme_name (str): The cursor theme name.
+            cursor_size (int): The cursor size
         """
         return self.exec("setcursor", cursor_theme_name, str(cursor_size))
     
     def getMonitors(self) -> list[Monitor]:
+        """Gets all the connected monitors
+
+        Returns:
+            list[Monitor]: A list of Monitor's class.
+        """
         monitors = json.loads(self.exec("monitors", "-j"))
         mons = []
         for x in monitors:
             mons.append(Monitor(**x))
         
         return mons
+
+    def getLayers(self):
+        """Get all the opened layers
+
+        Returns:
+            dict: A dict containing all of the available layers
+        """
+        return json.loads(self.exec("layers", "-j"))

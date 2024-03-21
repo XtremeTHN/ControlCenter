@@ -135,7 +135,7 @@ class ControlCenter(Adw.Application):
         #        res = Gio.Resource.load('src/res/com.github.XtremeTHN.ControlCenter.gresource')
         #Gio.resources_register(res)
 
-        Adw.StyleManager().set_color_scheme(Adw.ColorScheme.FORCE_DARK)
+        # Adw.StyleManager().set_color_scheme(Adw.ColorScheme.FORCE_DARK)
 
         self.win = self.props.active_window
         if not self.win:

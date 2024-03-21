@@ -1,10 +1,13 @@
 import logging
+import os
 
 from modules.config import GtkConfig
 
 from modules.tools.themes import GtkThemes, GtkIconTheme, GtkCursorTheme
-from modules.tools.custom_widgets import ConfigPage, HBox
+from modules.tools.custom_widgets import ConfigPage, HBox, VBox
 from modules.tools.utilities import set_margins
+
+from modules.tools.wallpapers import Wallpapers
 
 from modules.hyprland.ctl import HyprCtl
 
@@ -152,8 +155,49 @@ class GtkAppearanceConfig(ConfigPage):
         theme = combo_row.get_selected_item()
         self.gtk_themes.set_theme(theme.get_string())
 
+class WallpaperItem(Gtk.Picture):
+    def __init__(self, image_path: str):
+        self.image_file = Gio.File.new_for_path(image_path)
+        super().__init__(file=self.image_file, content_fit=Gtk.ContentFit.COVER, can_shrink=True, css_classes=["card"])
+        self.set_size_request(0,160)
 
-
+class WallpapersPage(ConfigPage):
+    def __init__(self):
+        super().__init__(logger_name="AppearancePage > WallpapersPage", header=False, spacing=20)
+        
+        self.scroll_box.set_policy(Gtk.PolicyType.NEVER, Gtk.ScrollablePolicy.NATURAL)
+        
+        self.wall_obj = Wallpapers()
+        self.wall_backend = self.wall_obj.get_backend()
+        
+        self.current_wallpaper_group = self.create_new_group("Current wallpaper", "")
+                
+        self.current_wallpaper_widget = WallpaperItem(self.wall_backend.get_wallpaper())
+        
+        self.current_wallpaper_group.append(self.current_wallpaper_widget)
+        
+        wallpapers_page, _ = self.create_new_group("Available wallpapers", "", add_listbox=False, append=False)
+        
+        images_flow = Gtk.FlowBox(orientation=Gtk.Orientation.HORIZONTAL, vexpand=False, max_children_per_line=4, homogeneous=True, min_children_per_line=3)
+        images_flow.connect('child-activated', self.on_wallpaper_choosen)
+        
+        images = self.wall_obj.get_wallpapers()
+        for x in images:
+            picture = Gtk.Picture.new_for_filename(x)
+            picture.set_content_fit(Gtk.ContentFit.COVER)
+            picture.add_css_class("card")
+            
+            images_flow.append(picture)
+        
+        wallpapers_page.add(images_flow)
+        self.scroll_box.append(wallpapers_page)
+    
+    def on_wallpaper_choosen(self, flow: Gtk.FlowBox, child: Gtk.FlowBoxChild):
+        picture: Gio.File = child.get_child().get_file()
+        self.wall_backend.set_wallpaper(picture.get_path())
+        
+        self.current_wallpaper_widget.set_file(picture)
+        
 class AppearancePage(ConfigPage):
     def __init__(self):
         super().__init__(logger_name="AppearancePage", add_scroll_box=False, spacing=20)
@@ -165,7 +209,9 @@ class AppearancePage(ConfigPage):
         
         self.view_switcher_stack.add_titled_with_icon(self.gtk_appearance_config, "gtkconfig-page", "Gtk Config", "applications-system-symbolic")
         
-        self.desktop_appearance_config = ...
+        self.desktop_appearance_config = WallpapersPage()
+        
+        self.view_switcher_stack.add_titled_with_icon(self.desktop_appearance_config, "wallpapers-page", "Wallpapers", "preferences-system-symbolic")
         
         self.view_switcher.set_stack(self.view_switcher_stack)
         self.header.set_title_widget(self.view_switcher)

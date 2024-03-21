@@ -86,16 +86,17 @@ class ConfigPage(VBox):
         self.logger = logging.getLogger(logger_name if logger_name is not None else "ConfigPage")
         super().__init__(spacing=2)
         
-        self.scroll_box = ScrolledBox(vexpand=True, **box_args)
-        set_margins(self.scroll_box, [10])
         
         if header is True:
             self.toolbar, self.header = create_header()        
             self.append(self.toolbar)
+            
         if add_scroll_box is True:
+            self.scroll_box = ScrolledBox(vexpand=True, **box_args)
+            set_margins(self.scroll_box, [10])
             self.append(self.scroll_box)
     
-    def create_new_group(self, title, description, suffix=None, append=True):
+    def create_new_group(self, title, description, suffix=None, add_listbox=True, append=True):
         """Creates a new group and appends it to the ScrolledBox
 
         Args:
@@ -114,12 +115,15 @@ class ConfigPage(VBox):
             else:
                 self.logger.warning("The provided suffix widget is not an instance of Gtk.Widget, fix it pls, or remove this verification")
                 self.logger.warning("Ignoring suffix...")
-
-        listbox_actions = Gtk.ListBox.new()
-        listbox_actions.set_selection_mode(Gtk.SelectionMode.NONE)
-        listbox_actions.get_style_context().add_class('boxed-list')
+                
+        listbox_actions = None
+        if add_listbox is True:
+            listbox_actions = Gtk.ListBox.new()
+            listbox_actions.set_selection_mode(Gtk.SelectionMode.NONE)
+            listbox_actions.add_css_class('boxed-list')
         
-        group.add(listbox_actions)
+            group.add(listbox_actions)
+            
         if append is True:
             self.scroll_box.append(group)
             return listbox_actions
