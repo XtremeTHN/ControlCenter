@@ -4,10 +4,12 @@ import os
 from modules.config import GtkConfig
 
 from modules.tools.themes import GtkThemes, GtkIconTheme, GtkCursorTheme
-from modules.tools.custom_widgets import ConfigPage, HBox, VBox
+from modules.tools.custom_widgets import ConfigPage, InfoRow, ErrorDialog
 from modules.tools.utilities import set_margins
 
 from modules.tools.wallpapers import Wallpapers
+
+from modules.variables import app
 
 from modules.hyprland.ctl import HyprCtl
 
@@ -173,30 +175,54 @@ class WallpapersPage(ConfigPage):
         self.current_wallpaper_group = self.create_new_group("Current wallpaper", "")
                 
         self.current_wallpaper_widget = WallpaperItem(self.wall_backend.get_wallpaper())
-        
+
         self.current_wallpaper_group.append(self.current_wallpaper_widget)
-        
-        wallpapers_page, _ = self.create_new_group("Available wallpapers", "", add_listbox=False, append=False)
-        
-        images_flow = Gtk.FlowBox(orientation=Gtk.Orientation.HORIZONTAL, vexpand=False, max_children_per_line=4, homogeneous=True, min_children_per_line=3)
-        images_flow.connect('child-activated', self.on_wallpaper_choosen)
-        
-        images = self.wall_obj.get_wallpapers()
-        for x in images:
-            picture = Gtk.Picture.new_for_filename(x)
-            picture.set_content_fit(Gtk.ContentFit.COVER)
-            picture.add_css_class("card")
-            
-            images_flow.append(picture)
-        
-        wallpapers_page.add(images_flow)
-        self.scroll_box.append(wallpapers_page)
+
+        wallpaper_chooser = Gtk.Button.new()
+        wallpaper_chooser_content = Adw.ButtonContent(icon_name="document-open-symbolic", label="Choose a wallpaper")
+        wallpaper_chooser.set_child(wallpaper_chooser_content)
+
+        wallpaper_chooser.connect("clicked", self.choose_file)
+
+        self.scroll_box.append(wallpaper_chooser)
+
+        self.backend_info_group = self.create_new_group("Wallpaper backend info", "Information about the current wallpaper backend (swww, swaybg, hyprwall, etc.)")
+
+        wallpaper_name = InfoRow("Current wallpaper path", "The current wallpaper path", self.wall_backend.get_wallpaper())
+
+        self.wall_backend.connect('changed', self.on_wall_backend_prop_changed, wallpaper_name)
+        self.backend_info_group.append(InfoRow("Version", "The wallpaper backend version", self.wall_backend.get_version()))
+        self.backend_info_group.append(wallpaper_name)
     
     def on_wallpaper_choosen(self, flow: Gtk.FlowBox, child: Gtk.FlowBoxChild):
         picture: Gio.File = child.get_child().get_file()
         self.wall_backend.set_wallpaper(picture.get_path())
-        
-        self.current_wallpaper_widget.set_file(picture)
+
+    def choose_file(self, button):
+        def on_response(src_obj: Gtk.FileDialog, result: Gio.AsyncResult, user_data):
+            if (file:=src_obj.open_finish(result)):
+                self.wall_backend.set_wallpaper(file.get_path())
+            else:
+                ErrorDialog("An unknown error has ocurred",
+                            "Error",
+                            {
+                                "accept":
+                                    {
+                                        "label":"Accept",
+                                        "defaultResponse": True,
+                                        "closeResponse":True
+                                    }
+                            })
+                
+        window = app.get_active_window()
+        dialog = Gtk.FileDialog(modal=True, title="Choose a wallpaper")
+        dialog.open(window, None, on_response)
+    
+    def on_wall_backend_prop_changed(self, _, wall_info_row: InfoRow):
+        wall = self.wall_backend.get_wallpaper()
+        self.current_wallpaper_widget.set_filename(wall)
+        print(os.path.basename(wall), wall)
+        wall_info_row.value.set_label(os.path.basename(wall)[1])
         
 class AppearancePage(ConfigPage):
     def __init__(self):

@@ -1,5 +1,7 @@
 from gi.repository import Adw, Gtk, Gio
 
+from pathlib import Path
+
 def set_margins(widget: Gtk.Widget, margins: list[int]):
     """
         Reminder: margins = [top, right, bottom, left]
@@ -53,4 +55,5 @@ def create_empty_file(file: str):
     Args:
         file (str): The file path
     """
-    open(file, 'a').close()
+    open(file, 'x').close()
+
