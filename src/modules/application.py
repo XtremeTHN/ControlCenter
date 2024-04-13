@@ -108,7 +108,7 @@ class ControlCenterWindow(Adw.ApplicationWindow):
 
         self.content = ControlCenterSideBar()
 
-        self.content.append_both(AppearancePage(), "appearance", "preferences-system-symbolic", "Appearance")
+        self.content.append_both(AppearancePage(self), "appearance", "preferences-system-symbolic", "Appearance")
 
         self.content.append_both(Displays(), "displays", "applications-display-symbolic", "Displays")
         
@@ -135,9 +135,8 @@ class ControlCenter(Adw.Application):
         )
     
     def do_activate(self) -> None:
-        self.win = self.props.active_window
-        if not self.win:
-            self.win = ControlCenterWindow(self)
+        if not self.props.active_window:
+            ControlCenterWindow(self)
         
         self.create_action('quit', self.exit_app, ['<primary>q'])
     

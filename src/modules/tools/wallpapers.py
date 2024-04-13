@@ -50,7 +50,7 @@ class Swww(WallpaperBackendTemplate):
         return self.exec("img", wallpaper_path)
     
     def get_version(self):
-        return self.exec("-V")
+        return self.exec("-V").decode("utf-8").strip()
 
 class Wallpapers:
     def __init__(self):

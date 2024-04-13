@@ -9,8 +9,6 @@ from modules.tools.utilities import set_margins
 
 from modules.tools.wallpapers import Wallpapers
 
-from modules.variables import app
-
 from modules.hyprland.ctl import HyprCtl
 
 from gi.repository import Gtk, GObject, Adw, Gio, GLib
@@ -164,9 +162,11 @@ class WallpaperItem(Gtk.Picture):
         self.set_size_request(0,160)
 
 class WallpapersPage(ConfigPage):
-    def __init__(self):
+    def __init__(self, window: Gtk.Window):
         super().__init__(logger_name="AppearancePage > WallpapersPage", header=False, spacing=20)
         
+        self.window = window
+
         self.scroll_box.set_policy(Gtk.PolicyType.NEVER, Gtk.ScrollablePolicy.NATURAL)
         
         self.wall_obj = Wallpapers()
@@ -188,44 +188,46 @@ class WallpapersPage(ConfigPage):
 
         self.backend_info_group = self.create_new_group("Wallpaper backend info", "Information about the current wallpaper backend (swww, swaybg, hyprwall, etc.)")
 
-        wallpaper_name = InfoRow("Current wallpaper path", "The current wallpaper path", self.wall_backend.get_wallpaper())
+        self.wallpaper_name = InfoRow("Current wallpaper path", self.wall_backend.get_wallpaper())
 
-        self.wall_backend.connect('changed', self.on_wall_backend_prop_changed, wallpaper_name)
-        self.backend_info_group.append(InfoRow("Version", "The wallpaper backend version", self.wall_backend.get_version()))
-        self.backend_info_group.append(wallpaper_name)
+        self.wall_backend.connect('changed', self.on_wall_backend_prop_changed)
+        self.backend_info_group.append(InfoRow("Version", self.wall_backend.get_version()))
+        self.backend_info_group.append(self.wallpaper_name)
     
     def on_wallpaper_choosen(self, flow: Gtk.FlowBox, child: Gtk.FlowBoxChild):
         picture: Gio.File = child.get_child().get_file()
         self.wall_backend.set_wallpaper(picture.get_path())
 
     def choose_file(self, button):
-        def on_response(src_obj: Gtk.FileDialog, result: Gio.AsyncResult, user_data):
-            if (file:=src_obj.open_finish(result)):
-                self.wall_backend.set_wallpaper(file.get_path())
+        def on_response(src_obj: Gtk.FileDialog, result: Gio.AsyncResult):
+            try:
+                file = src_obj.open_finish(result)
+            except Exception as e:
+                if (n:=" ".join(e.args)) != "Dismissed by user":
+                    ErrorDialog(text=n, title="Error", actions={"close": {"label": "Close"}}, window=self.window)
+                    return
             else:
-                ErrorDialog("An unknown error has ocurred",
-                            "Error",
-                            {
-                                "accept":
-                                    {
-                                        "label":"Accept",
-                                        "defaultResponse": True,
-                                        "closeResponse":True
-                                    }
-                            })
+                try:
+                    self.wall_backend.set_wallpaper(file.get_path())
+                except Exception as e:
+                    ErrorDialog(text=e, title="Error", actions={"close": {"label": "Close"}}, window=self.window)
+                    return
+                self.on_wall_backend_prop_changed(None)
                 
-        window = app.get_active_window()
+        window = self.window
         dialog = Gtk.FileDialog(modal=True, title="Choose a wallpaper")
         dialog.open(window, None, on_response)
     
-    def on_wall_backend_prop_changed(self, _, wall_info_row: InfoRow):
+    def on_wall_backend_prop_changed(self, _):
         wall = self.wall_backend.get_wallpaper()
-        self.current_wallpaper_widget.set_filename(wall)
-        print(os.path.basename(wall), wall)
-        wall_info_row.value.set_label(os.path.basename(wall)[1])
+
+        file = Gio.File.new_for_path(wall)
+        self.wallpaper_name.set_subtitle(wall)
+
+        self.current_wallpaper_widget.set_file(file)
         
 class AppearancePage(ConfigPage):
-    def __init__(self):
+    def __init__(self, window):
         super().__init__(logger_name="AppearancePage", add_scroll_box=False, spacing=20)
         
         self.view_switcher = Adw.ViewSwitcher(policy=Adw.ViewSwitcherPolicy.WIDE, vexpand=False)
@@ -235,7 +237,7 @@ class AppearancePage(ConfigPage):
         
         self.view_switcher_stack.add_titled_with_icon(self.gtk_appearance_config, "gtkconfig-page", "Gtk Config", "applications-system-symbolic")
         
-        self.desktop_appearance_config = WallpapersPage()
+        self.desktop_appearance_config = WallpapersPage(window)
         
         self.view_switcher_stack.add_titled_with_icon(self.desktop_appearance_config, "wallpapers-page", "Wallpapers", "preferences-system-symbolic")
         

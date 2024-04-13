@@ -89,25 +89,25 @@ class Displays(ConfigPage):
 
     def create_info_widgets(self, monitor):
         info_page, monitor_information_group = self.create_new_group("Information", "", append=False)
-        name_row = InfoRow("Name", "", monitor.name)
+        name_row = InfoRow("Name", monitor.name)
         monitor_information_group.append(name_row)
 
-        maker_row = InfoRow("Maker", "", monitor.make)
+        maker_row = InfoRow("Maker", monitor.make)
         monitor_information_group.append(maker_row)
 
-        model_row = InfoRow("Model", "", monitor.model)
+        model_row = InfoRow("Model", monitor.model)
         monitor_information_group.append(model_row)
 
-        serial_row = InfoRow("Serial", "", monitor.serial)
+        serial_row = InfoRow("Serial", monitor.serial)
         monitor_information_group.append(serial_row)
 
-        dpms_row = InfoRow("DPMS", "Display Power Management Signaling", "Enabled" if monitor.dpmsStatus else "Disabled")
+        dpms_row = InfoRow("DPMS", "Enabled" if monitor.dpmsStatus else "Disabled")
         monitor_information_group.append(dpms_row)
 
-        vrr_row = InfoRow("VRR", "Variable Refresh Rate", "Enabled" if monitor.vrr else "Disabled")
+        vrr_row = InfoRow("VRR", "Enabled" if monitor.vrr else "Disabled")
         monitor_information_group.append(vrr_row)
 
-        tearing = InfoRow("Actively Tearing", "", "Enabled" if monitor.activelyTearing else "Disabled")
+        tearing = InfoRow("Actively Tearing", "Enabled" if monitor.activelyTearing else "Disabled")
         monitor_information_group.append(tearing)
 
         return info_page

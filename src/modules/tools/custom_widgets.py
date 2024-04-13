@@ -1,8 +1,6 @@
 from gi.repository import Gtk, Adw
 from modules.tools.utilities import set_margins
 
-from modules.variables import app
-
 import logging
 
 def create_header():
@@ -160,55 +158,35 @@ class ConfigPage(VBox):
         """
         return super().appends(*widgets)
 
-class InfoRow(HBox):
-    def __init__(self, title, subtitle, info):
-        """Creates an Information "Row", for the style to be applied, this widget needs to be placed inside a Gtk.ListBox with 
 
-        Args:
-            title (str): The title
-            subtitle (str): The subtitle
-            info (str): The label that will be at the end of the widget
+def InfoRow(title, info):
+    """Creates an Information "Row", for the style to be applied, this widget needs to be placed inside a Gtk.ListBox with 
 
-        Returns:
-            HBox: A box containing all of the InfoRow widgets
-        """
-        super().__init__(spacing=10, homogeneous=True)
+    Args:
+        title (str): The title
+        info (str): The label that will be at the end of the widget
 
-        self.labels_box = VBox(spacing=0)
-        
-        self.title_widget =  Gtk.Label(halign=Gtk.Align.START, valign=Gtk.Align.CENTER, hexpand=True, label=f"{title}")
-        self.labels_box.append(self.title_widget)
+    Returns:
+        ActionRow: An ActionRow with the property class
+    """
+    return Adw.ActionRow(title=title, subtitle=info, activatable=False, subtitle_selectable=True, css_classes=["property"])
 
-        margins = [8, 15, 8, 15]
-        if subtitle != "":
-            self.subtitle_widget = Gtk.Label(halign=Gtk.Align.START, valign=Gtk.Align.CENTER, hexpand=True, label=f"{subtitle}", css_classes=["dim-label", "caption"])
-            self.labels_box.append(self.subtitle_widget)
-        else:
-            margins = [15, 13, 15, 13]
-
-        self.append(self.labels_box)
-
-        self.value = Gtk.Label(label=info, halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
-        self.append(self.value)
-
-        set_margins(self, margins)
-
-
-class ErrorDialog(Adw.MessageDialog):
-    def __init__(self, text: str, title: str, actions:dict[str, dict]={}):
-        super().__init__(body=text, body_use_markup=True, heading=title, heading_use_markup=True, application=app)
+class ErrorDialog:
+    def __init__(self, text: str, title: str, actions:dict[str, dict]={}, window: Gtk.Window=None):
+        self.widget = Adw.MessageDialog(body=text, body_use_markup=True, heading=title, heading_use_markup=True, transient_for=window, modal=True)
         
         if actions != {}:
             for action_name, action_params in actions.items():
-                self.add_response(action_name, action_params["label"])
+                if (n:=action_params.get("label")) is not None:
+                    self.widget.add_response(action_name, n)
 
                 if (n:=action_params.get("response-appearance")) is not None:
-                    self.set_response_appearance(action_name, n)
+                    self.widget.set_response_appearance(action_name, n)
                 
                 if (n:=action_params.get("defaultResponse")) is not None:
-                    self.set_default_response(action_name)
+                    self.widget.set_default_response(action_name)
                 
                 if (n:=action_params.get("closeResponse")) is not None:
-                    self.set_close_response(action_name)
+                    self.widget.set_close_response(action_name)
 
-        self.present()
+        self.widget.present()
