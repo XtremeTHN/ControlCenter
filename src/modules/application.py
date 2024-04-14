@@ -34,6 +34,27 @@ def create_placeholder() -> VBox:
 
     return _placeholder
 
+class ControlCenterGroup(Gtk.ListBox):
+    def __init__(self, is_root=False, **extra):
+        super().__init__(**extra)
+        if is_root is False:
+            self.add_css_class('navigation-sidebar')
+
+    def append_button(self, icon, label, target):
+        btt = Gtk.ListBoxRow.new()
+        
+        btt_content = HBox(name=f"{target}-button")
+
+        btt_content_image = Gtk.Image.new_from_icon_name(icon)
+        btt_content_label = Gtk.Label.new(label)
+
+        btt_content.appends(btt_content_image, btt_content_label)
+        
+        btt.set_child(btt_content)
+
+        self.append(btt)
+
+
 class ControlCenterSideBar:
     def __init__(self):
         self.children: dict[str, Adw.NavigationPage] = {}
@@ -45,11 +66,8 @@ class ControlCenterSideBar:
         # A widget holding the header and the content
         self.sidebar, _ = create_header()
 
-        self.sidebar_content = Gtk.ListBox.new()
+        self.sidebar_content = ControlCenterGroup(is_root=True)
         self.sidebar_content.connect('row-activated', self.on_row_activate)
-
-        self.sidebar_content.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.sidebar_content.add_css_class('navigation-sidebar')
 
         self.sidebar.set_content(self.sidebar_content)
 
@@ -74,7 +92,7 @@ class ControlCenterSideBar:
         else:
             print("WARNING: Expected Adw.NavigationPage on ControlCenterSideBar, no", type(widget))
     
-    def append_button_to_sidebar(self, icon, label, target):
+    def append_button(self, icon, label, target):
         btt = Gtk.ListBoxRow.new()
         
         btt_content = HBox(name=f"{target}-button")
@@ -88,9 +106,19 @@ class ControlCenterSideBar:
 
         self.sidebar_content.append(btt)
     
+    def create_group(self):
+        group_content = ControlCenterGroup()
+        group_content.connect('row-activated', self.on_row_activate)
+
+        self.sidebar_content.append(Gtk.Separator.new(orientation=Gtk.Orientation.HORIZONTAL))
+        self.sidebar_content.append(group_content)
+        self.sidebar_content.append(Gtk.Separator.new(orientation=Gtk.Orientation.HORIZONTAL))
+
+        return group_content
+    
     def append_both(self, widget, name, icon, label):
         self.add_named(widget, name, label)
-        self.append_button_to_sidebar(icon, label, name)
+        self.append_button(icon, label, name)
 
     def on_row_activate(self, listbox, row: Gtk.ListBoxRow, *args):
         target_name = row.get_first_child().get_name().split('-')[0]
@@ -98,7 +126,6 @@ class ControlCenterSideBar:
         if self.split_view.props.content.get_name() != target_name:
             self.split_view.set_content(self.children[target_name])
             self.split_view.activate_action("navigation.push", GLib.Variant.new_string(target_name))
-
 
 class ControlCenterWindow(Adw.ApplicationWindow):
     def __init__(self, app):
@@ -111,10 +138,11 @@ class ControlCenterWindow(Adw.ApplicationWindow):
         self.content = ControlCenterSideBar()
 
         self.content.append_both(AppearancePage(self), "appearance", "preferences-system-symbolic", "Appearance")
-
-        self.content.append_both(Displays(), "displays", "applications-display-symbolic", "Displays")
         
         self.content.append_both(Energy(), "energy", "battery-full-symbolic", "Energy")
+
+        hypr_group = self.content.create_group()
+        hypr_group.append_button("applications-display-symbolic", "Displays", "displays")
 
         self.main.append(self.content.split_view)
 
