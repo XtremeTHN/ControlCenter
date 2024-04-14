@@ -55,10 +55,14 @@ class ScrolledBox(Gtk.ScrolledWindow):
     def __init__(self, **box_args):
         """A Gtk.ScrolledWindow but with an integrated box
         """
+        self.widget = Adw.Clamp.new()
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, **box_args)
-        super().__init__(child=self.box, hscrollbar_policy=Gtk.PolicyType.NEVER, vscrollbar_policy=Gtk.PolicyType.AUTOMATIC)
+        set_margins(self.box, [10,5,10,5])
+        self.widget.set_child(self.box)
+
+        super().__init__(child=self.widget, hscrollbar_policy=Gtk.PolicyType.NEVER, vscrollbar_policy=Gtk.PolicyType.AUTOMATIC)
     
-    def apppends(self, *widgets):
+    def appends(self, *widgets):
         """Appends more than one widgets to the integrated box
         
         Args:
@@ -86,14 +90,12 @@ class ConfigPage(VBox):
         self.logger = logging.getLogger(logger_name if logger_name is not None else "ConfigPage")
         super().__init__(spacing=2)
         
-        
         if header is True:
-            self.toolbar, self.header = create_header()        
+            self.toolbar, self.header = create_header()
             self.append(self.toolbar)
             
         if add_scroll_box is True:
             self.scroll_box = ScrolledBox(vexpand=True, **box_args)
-            set_margins(self.scroll_box, [10])
             self.append(self.scroll_box)
     
     def create_new_group(self, title, description, suffix=None, add_listbox=True, append=True):

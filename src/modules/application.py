@@ -69,6 +69,8 @@ class ControlCenterSideBar:
     def add_named(self, widget, tag, title):
         if isinstance(widget, Gtk.Widget):
             self.children[tag] = Adw.NavigationPage(child=widget, title=title, tag=tag)
+        elif hasattr(widget, "widget") is True:
+            self.children[tag] = Adw.NavigationPage(child=widget.widget, title=title, tag=tag)
         else:
             print("WARNING: Expected Adw.NavigationPage on ControlCenterSideBar, no", type(widget))
     

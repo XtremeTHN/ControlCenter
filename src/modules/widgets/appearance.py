@@ -214,9 +214,8 @@ class WallpapersPage(ConfigPage):
                     return
                 self.on_wall_backend_prop_changed(None)
                 
-        window = self.window
         dialog = Gtk.FileDialog(modal=True, title="Choose a wallpaper")
-        dialog.open(window, None, on_response)
+        dialog.open(self.window, None, on_response)
     
     def on_wall_backend_prop_changed(self, _):
         wall = self.wall_backend.get_wallpaper()

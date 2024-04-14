@@ -43,13 +43,16 @@ class Swww(WallpaperBackendTemplate):
         super().__init__("swww")
     
     def get_wallpaper(self):
+        self.logger.info("Getting wallpaper from swww...")
         return self.exec("query").decode().split(":")[-1].strip()
 
     def set_wallpaper(self, wallpaper_path):
+        self.logger.info("Setting wallpaper from swww...")
         self.emit('changed')
         return self.exec("img", wallpaper_path)
     
     def get_version(self):
+        self.logger.info("Getting version from swww...")
         return self.exec("-V").decode("utf-8").strip()
 
 class Wallpapers:
