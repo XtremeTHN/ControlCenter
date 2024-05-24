@@ -67,7 +67,7 @@ class Wallpapers:
         layers = self.__ctl.getLayers()
         for display in layers:
             for wallpaper_helper in layers[display]["levels"]["0"]:
-                if wallpaper_helper["namespace"] == "swww":
+                if wallpaper_helper["namespace"] == "swww-daemon":
                     return Swww()
     
     def get_wallpapers(self) -> list[str]:
